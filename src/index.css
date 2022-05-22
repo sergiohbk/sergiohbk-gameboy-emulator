@@ -1,10 +1,25 @@
+@font-face {
+  font-family: 'Pretendo';
+  src: url(../public/Pretendo.ttf);
+}
+@font-face {
+  font-family: 'Futura Bold Oblique';
+  src: url("../public/Futura-Bold-Oblique.otf") format('opentype');
+}
+
+:root{
+  --gb-width: 380px;
+  --gb-height: 625px;
+  --gameboy-color: #eae3ec;
+  --letters: #3c3787;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Arial', sans-serif, 'Pretendo';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #524f5e;
 }
 
 code {

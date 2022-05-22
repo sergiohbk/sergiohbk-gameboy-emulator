@@ -1,0 +1,21 @@
+.container-screen{
+    --height: 300px;
+    height: var(--height);
+    box-shadow: 0 2px 3px #FFFE inset;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+}
+.model{
+    font-family: "Futura Bold Oblique";
+    color: var(--letters);
+}
+.nintendo-logo{
+    font-family: "Pretendo";
+    color: var(--letters);
+}
+.model-sub{
+    font-family: sans-serif;
+    color: var(--letters);
+}

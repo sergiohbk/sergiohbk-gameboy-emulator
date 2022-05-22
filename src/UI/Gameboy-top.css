@@ -1,0 +1,44 @@
+.container-top{
+    --heigth: 24px;
+    display: flex;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    height: var(--heigth);
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0px 11px 3px -5px #FFFE inset;
+}
+.corner{
+    width: 25px;
+    height: 22px;
+}
+.on-off-symbols{
+    width: 100%;
+}
+.corner.right{
+    margin-right: 5px;
+}
+.corner.left{
+    margin-left: 5px;
+}
+.corner,
+.on-off-symbols{
+    border-radius: 0 0 3px 2px;
+    border: 1px solid #0002;
+    box-shadow: 0px 2px 2px #0007;
+}
+
+.on-off-symbols span{
+    display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    color: var(--gameboy-color);
+    text-shadow: 0px 1px 1px #000A,
+        0px -1px 1px #FFFE,
+        0px -1px 1px #FFFE;
+    border-radius: 15px;
+    padding: 2px 7px;
+    transform: translate(6px, -1px);
+    border-bottom: 1px solid #FFFE;
+    box-shadow: 0px 1px 1px #000A inset;
+}

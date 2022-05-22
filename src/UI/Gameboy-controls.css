@@ -1,0 +1,4 @@
+.container-controls {
+    --height: 300px;
+    height: var(--height);
+}
