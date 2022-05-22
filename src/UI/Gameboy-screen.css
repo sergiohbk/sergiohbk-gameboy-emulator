@@ -1,21 +1,87 @@
 .container-screen{
     --height: 300px;
     height: var(--height);
-    box-shadow: 0 2px 3px #FFFE inset;
+    box-shadow: 0 4px 3px -2px #FFFE inset;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     flex-direction: column;
+    padding: 0 25px;
 }
 .model{
     font-family: "Futura Bold Oblique";
     color: var(--letters);
+    font-size: 22px;
 }
 .nintendo-logo{
     font-family: "Pretendo";
+    font-weight: bold;
+    font-size: 16px;
     color: var(--letters);
 }
 .model-sub{
-    font-family: sans-serif;
+    display: inline-block;
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 16px;
     color: var(--letters);
+    transform: translate(1px, 1px);
+}
+.screen{
+    --height: 250px;
+    --width: 330px;
+    height: var(--height);
+    width: var(--width);
+    background-color: var(--screen);
+    margin-top: 15px;
+    border-radius: 10px 10px 35px 10px;
+    box-shadow: 0px 0px 3px #0005;
+}
+.lcd{
+    --height: 192px;
+    --width: 208px;
+    height: var(--height);
+    width: var(--width);
+    background-color: #9ca04c;
+}
+
+.screen-battery-text{
+    font-family: Arial;
+    font-size: 8px;
+    color: #FFFC;
+}
+.screen-top{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    --height: 20px;
+    height: var(--height);
+    padding: 6px 16px;
+}
+.screen-top-stripes{
+    --heigth: 5px;
+    height: var(--heigth);
+    width: 100%;
+    border-top: 2px solid #ad224e;
+    border-bottom: 2px solid #2f0a69;
+}
+
+.screen-top span{
+    display: inline-block;
+    position: absolute;
+    font-family: Arial;
+    font-size: 9px;
+    color: #FFFC;
+    padding: 5px 9px;
+    background-color: var(--screen);
+    transform: translateX(30px);
+}
+
+.screen-bottom{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 16px;
+    padding-right: 58px;
 }
