@@ -3,6 +3,28 @@ import './Gameboy-controls.css';
 function Dpad(){
     return(
         <div className="D-pad">
+            <div className="x axis">
+                <Bands />
+                <Bands />
+            </div>
+            <div className="y axis">
+                <Bands />
+                <Bands />
+            </div>
+            <div className="center axis">
+                <div className="center-circle">
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function Bands(){
+    return(
+        <div className="group">
+            <div className="band"></div>
+            <div className="band"></div>
+            <div className="band"></div>
         </div>
     );
 }
@@ -39,6 +61,7 @@ export function GameboyControls (){
             </div>
             <div className="bottom">
                 <div className="phones">
+                🎧PHONES
                 </div>
                 <div className="decoration">
                 </div>

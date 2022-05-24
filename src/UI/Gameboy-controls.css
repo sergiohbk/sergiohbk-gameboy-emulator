@@ -1,4 +1,116 @@
 .container-controls {
     --height: 300px;
     height: var(--height);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: center;
+}
+
+.controls{
+    height: 160px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0px 20px;
+    box-sizing: border-box;
+
+}
+
+.speakers{
+    height: 100px;
+    width: 150px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.option-buttons{
+    height: 70px;
+    width: 130px;
+    background-color: aliceblue;
+}
+.bottom{
+    position: absolute;
+    bottom: 0;
+}
+
+.D-pad{
+    height: 120px;
+    width: 120px;
+    border-radius: 50%;
+    background-image: linear-gradient(to bottom, 
+    #ddd4df 15%, #eae3ec 50%, #eee6f0 85%);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.axis{
+    --large: 83px;
+    --small: 23px;
+    background: #170d16;
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 3px;
+    box-shadow: 0 0 2px 3px #170d16,
+        0 7px 5px #0009;
+}
+.axis.x{
+    height: var(--small);
+    width: var(--large);
+    border: 2px solid #48455a;
+    border-top: 3px solid #FFFE;
+}
+.axis.y{
+    height: var(--large);
+    width: var(--small);
+    border: 2px solid #53525a;
+    border-top: 3px solid #FFFE;
+    flex-direction: column;
+}
+.axis.center{
+    height: var(--small);
+    width: var(--small);
+    background: #170d16;
+    position: absolute;
+    border-radius: 0;
+    box-shadow: 0 0 0 3px #170d16;
+}
+.center-circle{
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    background-image: conic-gradient( #d1d6dc77 0 1%, transparent 10% 35%, #DDE8F7 50%, transparent 65% 90%, #e4e9f077 99% );
+}
+.axis .group{
+    width: var(--small);
+    height: var(--small);
+    display: flex;
+    gap: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.axis .group .band{
+    width: 4px;
+    height: 80%;
+    background: #1d1b29;
+    border-radius: 5px;
+    border-left: 1px solid #fff1;
+}
+
+.axis.y .group{
+    transform: rotate(90deg);
+}
+
+
+.buttons{
+    height: 130px;
+    width: 130px;
+    background-color: rgb(122, 133, 103);
 }
