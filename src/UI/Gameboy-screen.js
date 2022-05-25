@@ -36,9 +36,9 @@ export function GameboyScreen(){
         <div className="container-screen">
             <Screen />
             <div className="nintendo">
-                <span className="nintendo-logo">Nintendo </span>
+                <span className="nintendo-logo">Nintendo</span>
                 <span className="model">GAME BOY</span>
-                <sub className="model-sub">™</sub>
+                <span className="model-sub">™</span>
             </div>
         </div>
     );

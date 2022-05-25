@@ -1,10 +1,15 @@
 @font-face {
-  font-family: 'Pretendo';
-  src: url(../public/Pretendo.ttf);
+  font-family: 'Nintender';
+  src: url(../public/Nintender.ttf);
 }
 @font-face {
-  font-family: 'Futura Bold Oblique';
-  src: url("../public/Futura-Bold-Oblique.otf") format('opentype');
+  font-family: "Gill Sans Bold Italic";
+  src: url(../public/Gill-Sans-Bold-Italic.otf);
+}
+
+@font-face {
+  font-family: "NES controller MrShrike";
+  src: url(../public/NES_Controller_MrShrike.ttf);
 }
 
 :root{

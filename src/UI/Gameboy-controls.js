@@ -31,9 +31,11 @@ function Bands(){
 
 function Button(props){
     return(
-        <button className="button">
-            {props.name}
-        </button>
+        <div className={props.class}>
+            <div className="name">
+                {props.name}
+            </div>
+        </div>
     );
 }
 
@@ -50,14 +52,16 @@ export function GameboyControls (){
             <div className="controls">
                 <Dpad />
                 <div className="buttons">
-                    <Button name="B" />
-                    <Button name="A" />
+                    <div className="button-group">
+                        <Button name="B" class="btn" />
+                        <Button name="A" class="btn" />
+                    </div>
                 </div>
             </div>
             <Speakers />
             <div className="option-buttons">
-                <Button name="SELECT" />
-                <Button name="START" />
+                <Button name="SELECT" class="btn-opt" />
+                <Button name="START" class="btn-opt"/>
             </div>
             <div className="bottom">
                 <div className="phones">

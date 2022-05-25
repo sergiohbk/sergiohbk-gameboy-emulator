@@ -49,8 +49,8 @@
     align-items: center;
 }
 .axis{
-    --large: 83px;
-    --small: 23px;
+    --large: 80px;
+    --small: 21px;
     background: #170d16;
     position: absolute;
     display: flex;
@@ -112,5 +112,45 @@
 .buttons{
     height: 130px;
     width: 130px;
-    background-color: rgb(122, 133, 103);
+    display: flex;
+    align-items: center;
+}
+
+.button-group{
+    width: 130px;
+    height: 65px;
+    border-radius: 40px;
+    background-image: linear-gradient(to bottom, 
+    #cec4d0 20%, #eae3ec 50%, #f5f0f6 85%);
+    transform: rotate(-25deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    gap: 0 25px;
+}
+.btn{
+    --size: 43px;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: radial-gradient(#700532 75%, #a20d55 90%,#EF94B2);
+    box-shadow: 1px -4px 0 -3px #7c4b5b inset, 
+    -3px 7px 5px -2px #1e0009, 
+    1px -1px 0 2px #53182b,
+    0px 2px 4px #FFFE inset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.btn .name{
+    font-family: "NES controller MrShrike";
+    font-size: 18px;
+    color: var(--letters);
+    transform: translateY(290%);
+}
+
+.btn-opt .name{
+    font-family: "NES controller MrShrike";
+    color: var(--letters);
 }

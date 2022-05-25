@@ -1,8 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 #fonts
-Futura-Bold-Oblique.otf
 Pretendo.ttf
+Nintender.ttf
+NES_Controller_MrShrike.ttf
+Gill-Sans-Bold-Italic.otf
 
 # dependencies
 /node_modules

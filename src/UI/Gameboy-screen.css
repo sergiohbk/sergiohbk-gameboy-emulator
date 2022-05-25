@@ -9,15 +9,25 @@
     padding: 0 25px;
 }
 .model{
-    font-family: "Futura Bold Oblique";
+    display: inline-block;
+    font-family: "Gill Sans Bold Italic";
     color: var(--letters);
     font-size: 22px;
+    transform: scaleY(130%);
+    margin-left: 5px;
+}
+.nintendo{
+    display: flex;
+    align-items: flex-end;
+    padding-top: 3px;
 }
 .nintendo-logo{
-    font-family: "Pretendo";
+    font-family: "Nintender";
+    letter-spacing: 0.4px;
     font-weight: bold;
     font-size: 16px;
     color: var(--letters);
+    
 }
 .model-sub{
     display: inline-block;
@@ -25,7 +35,7 @@
     font-weight: bold;
     font-size: 16px;
     color: var(--letters);
-    transform: translate(1px, 1px);
+    transform: translateY(7px);
 }
 .screen{
     --height: 250px;
