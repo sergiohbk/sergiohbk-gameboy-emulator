@@ -12,6 +12,11 @@
   src: url(../public/NES_Controller_MrShrike.ttf);
 }
 
+@font-face {
+  font-family: "Pretendo";
+  src: url(../public/Pretendo.ttf);
+}
+
 :root{
   --gb-width: 380px;
   --gb-height: 625px;

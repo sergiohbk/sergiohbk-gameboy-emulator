@@ -29,6 +29,14 @@ function Bands(){
     );
 }
 
+function Triangle(props){
+    return(
+        <span className={props.pos}>
+            {props.symbol}
+        </span>
+    );
+}
+
 function Button(props){
     return(
         <div className={props.class}>
@@ -60,8 +68,12 @@ export function GameboyControls (){
             </div>
             <Speakers />
             <div className="option-buttons">
-                <Button name="SELECT" class="btn-opt" />
-                <Button name="START" class="btn-opt"/>
+                <div className="opt-container">
+                    <Button name="SELECT" class="btn-opt" />
+                </div>
+                <div className="opt-container">
+                    <Button name="START" class="btn-opt"/>
+                </div>
             </div>
             <div className="bottom">
                 <div className="phones">

@@ -28,13 +28,22 @@
 }
 
 .option-buttons{
-    height: 70px;
-    width: 130px;
-    background-color: aliceblue;
+    height: 65px;
+    width: 120px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    transform: translateX(-15px);
 }
 .bottom{
     position: absolute;
     bottom: 0;
+    border-radius: 30px;
+    border-bottom: 1px solid #FFF5;
+    box-shadow: 0px 1px 1px #0005 inset;
+    padding: 2px 6px;
+    transform: translate(-15px, -12px);
 }
 
 .D-pad{
@@ -95,6 +104,44 @@
     align-items: center;
     justify-content: center;
 }
+.axis.x::before,
+.axis.x::after,
+.axis.y::before,
+.axis.y::after{
+    content: '';
+    position: absolute;
+    display: block;
+    background: #FFFB;
+    width: 6px;
+    height: 6px;
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    filter: drop-shadow(2px 2px 4px #000A);
+}
+.axis.x::after{
+    --x: calc(var(--large) + 15px - 6px);
+    --y: 8px;
+    --rotate: -90deg;
+}
+.axis.x::before{
+    --x: -15px;
+    --y: 8px;
+    --rotate: 90deg;
+}
+.axis::before,
+.axis::after{
+    transform: translate(var(--x), var(--y)) rotate(var(--rotate));
+}
+
+.axis.y::before{
+    --y: -15px;
+    --x: 7.5px;
+    --rotate: 180deg;
+}
+.axis.y::after{
+    --y: calc(var(--large) + 15px - 6px);
+    --x: 7.5px;
+    --rotate: 0deg;
+}
 
 .axis .group .band{
     width: 4px;
@@ -107,7 +154,6 @@
 .axis.y .group{
     transform: rotate(90deg);
 }
-
 
 .buttons{
     height: 130px;
@@ -150,7 +196,38 @@
     transform: translateY(290%);
 }
 
+.opt-container{
+    width: 47%;
+    height: 20px;
+    border-radius: 30px;
+    transform: rotate(-25deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: -4px 4px 3px -3px #0005 inset, 4px -4px 3px -3px #fffc inset;
+}
+.btn-opt{
+    width: 80%;
+    height: 50%;
+    border-top: 1px solid #000E;
+    border-radius: 30px;
+    background: linear-gradient(to bottom, #827e94 0%, #898699 50%, #747186 85%, #5e5b6f 100%);
+    box-shadow: 0px 4px 7px #FFF4 inset,
+        0 0 4px #0005 inset,
+        -1px 2px 2px #000E;
+    display: flex;
+    justify-content: center;
+}
 .btn-opt .name{
     font-family: "NES controller MrShrike";
     color: var(--letters);
+    transform: translateY(110%);
+}
+.phones{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8px;
+    color: var(--gameboy-color);
+    text-shadow: 0px 1px 1px #0005,
+    0px -1px 1px #FFFA,
+    0px -1px 1px #FFFA;
 }
