@@ -21,10 +21,42 @@
 
 .speakers{
     height: 100px;
-    width: 150px;
+    width: 120px;
     position: absolute;
     bottom: 0;
     right: 0;
+    transform: rotate(-30deg);
+    display: flex;
+    justify-content: space-around;
+}
+
+.non-speaker{
+    width: 8px;
+    height: 60px;
+    border-radius: 8px;
+    box-shadow: -2px 4px 3px #000A  inset,
+        -2px 1px 3px #FFFE;
+    background: #0002;
+}
+
+.speaker{
+    width: 8px;
+    height: 60px;
+    border-radius: 8px;
+    box-shadow: -2px 4px 3px #000A  inset,
+        -2px 1px 3px #FFFE;
+    background: #0002;
+    position: relative;
+}
+.speaker::before{
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 73%;
+    box-shadow: 0 0 1px #000A inset,
+        0 2px 2px #FFFA;
+    background: #000A;
+    transform: translateY(3px);
 }
 
 .option-buttons{
@@ -65,7 +97,7 @@
     display: flex;
     justify-content: space-between;
     border-radius: 3px;
-    box-shadow: 0 0 2px 3px #170d16,
+    box-shadow: 0 0 0 3px #170d16,
         0 7px 5px #0009;
 }
 .axis.x{

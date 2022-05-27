@@ -50,6 +50,18 @@ function Button(props){
 function Speakers(){
     return(
         <div className="speakers">
+            <div className="non-speaker">
+            </div>
+            <div className="speaker">
+            </div>
+            <div className="speaker">
+            </div>
+            <div className="speaker">
+            </div>
+            <div className="speaker">
+            </div>
+            <div className="speaker">
+            </div>
         </div>
     );
 }

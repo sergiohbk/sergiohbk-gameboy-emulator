@@ -1,5 +1,5 @@
 .container-top{
-    --heigth: 24px;
+    --heigth: 25px;
     display: flex;
     padding-bottom: 5px;
     margin-bottom: 5px;
@@ -10,7 +10,7 @@
 }
 .corner{
     width: 25px;
-    height: 22px;
+    height: 24.5px;
 }
 .on-off-symbols{
     width: 100%;
@@ -23,9 +23,9 @@
 }
 .corner,
 .on-off-symbols{
-    border-radius: 0 0 3px 2px;
-    border: 1px solid #0002;
-    box-shadow: 0px 2px 2px #0007;
+    border-radius: 0 0 1px 1px;
+    box-shadow: 0px 2px 2px #0007,
+        1px -1px 2px #FFFA inset;
 }
 
 .on-off-symbols span{
@@ -38,7 +38,7 @@
         0px -1px 1px #FFFE;
     border-radius: 15px;
     padding: 2px 7px;
-    transform: translate(6px, -1px);
+    transform: translate(6px, 0);
     border-bottom: 1px solid #FFFE;
     box-shadow: 0px 1px 1px #000A inset;
 }
