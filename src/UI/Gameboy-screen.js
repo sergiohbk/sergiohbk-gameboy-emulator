@@ -1,10 +1,11 @@
 import './Gameboy-screen.css';
+import {store}  from './Global';
 
 
 function Screenbattery(){
     return(
         <div className="screen-battery">
-            <div className="led">
+            <div id='led' className="led">
             </div>
             <div className="screen-battery-text">
                 BATTERY
@@ -23,7 +24,11 @@ function Screen(){
             </div>
             <div className="screen-bottom">
                 <Screenbattery />
-                <div className="lcd">
+                <div className='css-inutil'>
+                    <div className='lcd-shadow'>
+                    </div>
+                    <canvas id='screen-canvas'>
+                    </canvas>
                 </div>
             </div>
         </div>
@@ -32,6 +37,14 @@ function Screen(){
 }
 
 export function GameboyScreen(){
+    store.subscribe(() => {
+       if(store.getState().turnOnGameboy){
+           document.getElementById("led").classList.add("on");
+       }else{
+           document.getElementById("led").classList.remove("on");
+       }
+    });
+
     return(
         <div className="container-screen">
             <Screen />

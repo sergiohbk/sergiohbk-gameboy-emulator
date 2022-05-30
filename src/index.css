@@ -23,6 +23,8 @@
   --gameboy-color: #eae3ec;
   --letters: #3c3787;
   --screen: #747186;
+  --lcd-height: 192px;
+  --lcd-width: 208px;
 }
 
 body {

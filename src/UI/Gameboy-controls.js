@@ -29,14 +29,6 @@ function Bands(){
     );
 }
 
-function Triangle(props){
-    return(
-        <span className={props.pos}>
-            {props.symbol}
-        </span>
-    );
-}
-
 function Button(props){
     return(
         <div className={props.class}>

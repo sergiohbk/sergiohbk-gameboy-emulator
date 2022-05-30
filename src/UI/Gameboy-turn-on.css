@@ -6,6 +6,8 @@
     transform: translate(35px, -3px);
     border-top: 1px solid #FFFE;
     z-index: -1;
+    cursor: pointer;
+    transition: transform 0.5s ease;
 }
 .power-button::after{
     content: "";
@@ -15,4 +17,9 @@
     position: absolute;
     border-radius: 50px;
     transform: translate(1px, -3px);
+}
+
+.power-button.on{
+    transition: transform 0.5s ease;
+    transform: translate(55px, -3px);
 }
