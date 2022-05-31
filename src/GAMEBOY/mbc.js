@@ -1,3 +1,5 @@
+import {clockspersecond} from './variables/globalConstants';
+
 export class MBC {
     constructor(rom, bus){
         this.cartridge = rom;
@@ -7,6 +9,16 @@ export class MBC {
         this.romBankNumber = 1;
         this.mode = 0;
         this.zeroBankNumber = 0;
+        this.RTC ={
+            seconds: 0,
+            minutes: 0,
+            hours: 0,
+            days: 0,
+            timerhalt: 0,
+            countercarry: 0
+        }
+        this.RTCaccess = false;
+        this.clocks = 0;
     }
 
     init(){
@@ -67,18 +79,22 @@ export class MBC {
     }
 
     enablingRam(value){
-        
-        console.log("MBC1 or MBC5 enabling ram");
         value = value & 0x0F;
         if(value == 0xA){
             this.externalRam = true;
+            if(this.cartridge.MBC3){
+                this.RTCaccess = true;
+            }
         }else{
             this.externalRam = false;
+            if(this.cartridge.MBC3){
+                this.RTCaccess = false;
+            }
         }
     }
 
     setTheRomBankNumber(value){
-        if(!this.cartridge.MBC1 && !this.cartridge.MBC5) return;
+        if(!this.cartridge.MBC1) return;
         
         if(this.cartridge.MBC1){
             if(value == 0)
@@ -105,6 +121,19 @@ export class MBC {
                 }
             }
         }
+    }
+
+    setTheRomBankNumberMBC3(value){
+        if(!this.cartridge.MBC3) return;
+
+        if(value === 0){
+            this.romBankNumber = 1;
+            return;
+        }
+
+        value = value & 0x7F;
+
+        this.romBankNumber = value;
     }
 
     setTheRomBankNumberMBC5(value, highbit){
@@ -180,6 +209,45 @@ export class MBC {
         this.ramBankNumber = value;
     }
 
+    setTheRamBankNumberMBC3(value){
+        if(!this.cartridge.MBC3) return;
+
+        if(value <= 0x03){
+            this.ramBankNumber = value;
+            return;
+        }
+        if(value >= 0x08 && value <= 0x0C){
+            //mapear a ram el RTC registro correspondiente
+            return;
+        }
+    }
+
+    setTheRTCregister(value, position){
+        if(!this.cartridge.MBC3) return;
+
+        if(!this.RTCaccess) return;
+
+        switch(position){
+            case 0x08:
+                this.RTC.seconds = value;
+                break;
+            case 0x09:
+                this.RTC.minutes = value;
+                break;
+            case 0x0A:
+                this.RTC.hours = value;
+                break;
+            case 0x0B:
+                this.RTC.days = this.RTC.days & 0x100 | value;
+                break;
+            case 0x0C:
+                this.RTC.days = this.RTC.days & 0x0FF | (value & 0x01) << 8;
+                this.RTC.timerhalt = value & 0x40;
+                this.RTC.countercarry = value & 0x80;
+                break;
+        }
+    }
+
     setModeFlag(value){
         if(!this.cartridge.MBC1) return;
 
@@ -207,6 +275,15 @@ export class MBC {
         
         if(this.cartridge.MBC5){
             this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
+            return;
+        }
+
+        if(this.cartridge.MBC3){
+            this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
+            return;
+
+            //RTC es en ram, escribe en el registro mapeado
+
         }
     }
 
@@ -238,5 +315,38 @@ export class MBC {
         if(this.cartridge.MBC5){
             return this.ramBanks[this.ramBankNumber][address - 0xA000];
         }
+
+        if(this.cartridge.MBC3){
+            //si RTC es mapeado, return RTC
+
+            return this.ramBanks[this.ramBankNumber][address - 0xA000];
+        }
+    }
+
+    timerTick(cycles){
+        if(!this.cartridge.MBC3) return;
+
+        this.clocks += cycles;
+        if(this.clocks >= clockspersecond){
+            this.RTC.seconds++;
+            if(this.RTC.seconds == 60){
+                this.RTC.seconds = 0;
+                this.RTC.minutes++;
+                if(this.RTC.minutes == 60){
+                    this.RTC.minutes = 0;
+                    this.RTC.hours++;
+                    if(this.RTC.hours == 24){
+                        this.RTC.hours = 0;
+                        this.RTC.days++;
+                        if(this.RTC.days > 0x1FF){
+                            this.RTC.days = 0;
+                            this.RTC.countercarry = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        this.clocks = this.clocks % clockspersecond;
     }
 }

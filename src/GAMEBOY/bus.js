@@ -73,6 +73,10 @@ export class Bus{
                 }
             }
 
+            if(this.cartridge.MBC3){
+                this.MBC.setTheRomBankNumberMBC3(value);
+                return;
+            }
             return;
         }
         if(address >= 0x4000 && address < 0x5FFF){
@@ -82,6 +86,10 @@ export class Bus{
             }
             if(this.cartridge.MBC5){
                 this.MBC.setTheRamBankNumberMBC5(value);
+                return;
+            }
+            if(this.cartridge.MBC3){
+                this.MBC.setTheRamBankNumberMBC3(value);
                 return;
             }
 

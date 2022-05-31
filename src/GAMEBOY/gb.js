@@ -54,6 +54,10 @@ export class GAMEBOY {
         this.cycles += cyclesFrame;
       }
 
+      if(this.cpu.bus.cartridge.timer){
+        this.cpu.bus.MBC.timerTick(this.cycles);
+      }
+
       this.gpu.renderTheFrame();
 
       this.cycles %= cyclesPerFrame;
