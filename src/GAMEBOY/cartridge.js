@@ -11,6 +11,7 @@ export class Cartridge{
         this.rom_size = this.getRomSize();
         this.rom_header_pointer = 0x100;
         this.ram_size = this.getRamSize();
+        this.cgb_only = this.cgbOnly();
 
         console.log("cardtype name", this.cartType.name);
         console.log("ramsize", this.ram_size);
@@ -74,6 +75,16 @@ export class Cartridge{
             flag = "juego que tiene las funciones de super gameboy deshabilitadas";
         }
         return flag;
+    }
+    cgbOnly(){
+        if(this.rom[0x143] === 0x80){
+            return "compatible con cgb y gb";
+        }
+        if(this.rom[0x143] === 0xC0){
+            return "solo compatible con cgb";
+        }else{
+            return "cartucho antiguo, compatible posiblemente con gb";
+        }
     }
     getDestinationCode(rom){
         if(rom[0x014A] === 0x00){

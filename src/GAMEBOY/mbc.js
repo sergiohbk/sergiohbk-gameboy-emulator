@@ -17,8 +17,11 @@ export class MBC {
             timerhalt: 0,
             countercarry: 0
         }
+        this.RTCselectRegister = 0xFF;
+        this.RTCLatched = 0xFF;
         this.RTCaccess = false;
         this.clocks = 0;
+        this.latching = false;
     }
 
     init(){
@@ -33,8 +36,9 @@ export class MBC {
             this.ramBanks[i] = new Uint8Array(0x2000);
             this.ramBanks[i].fill(0);
         }
-
-        this.load();
+        if(this.cartridge.battery){
+            this.load();
+        }
     }
 
     save(){
@@ -217,33 +221,104 @@ export class MBC {
             return;
         }
         if(value >= 0x08 && value <= 0x0C){
-            //mapear a ram el RTC registro correspondiente
-            return;
+            if(!this.cartridge.timer) return;
+            if(!this.RTCaccess) return;
+
+            this.selectRegisterRTC(value);
         }
     }
 
-    setTheRTCregister(value, position){
-        if(!this.cartridge.MBC3) return;
-
-        if(!this.RTCaccess) return;
-
-        switch(position){
+    selectRegisterRTC(value){
+        switch(value){
             case 0x08:
-                this.RTC.seconds = value;
+                this.RTCselectRegister = 0;
                 break;
             case 0x09:
-                this.RTC.minutes = value;
+                this.RTCselectRegister = 1;
                 break;
             case 0x0A:
-                this.RTC.hours = value;
+                this.RTCselectRegister = 2;
                 break;
             case 0x0B:
-                this.RTC.days = this.RTC.days & 0x100 | value;
+                this.RTCselectRegister = 3;
                 break;
             case 0x0C:
-                this.RTC.days = this.RTC.days & 0x0FF | (value & 0x01) << 8;
-                this.RTC.timerhalt = value & 0x40;
-                this.RTC.countercarry = value & 0x80;
+                this.RTCselectRegister = 4;
+                break;
+        }
+    }
+
+    getLatchedRTCselect(value){
+        if(this.RTCLatched === 0xFF){
+            return 0xFF;
+        }
+
+        switch(this.RTCselectRegister){
+            case 0:
+                return this.RTCLatched.seconds | 0xC0;
+            case 1:
+                return this.RTCLatched.minutes | 0xC0;
+            case 2:
+                return this.RTCLatched.hours | 0xE0;
+            case 3:
+                return this.RTCLatched.days;
+            case 4:
+                value = (this.RTCLatched.days & 0x100) >> 8;
+                value |= this.RTCLatched.timerhalt << 6;
+                value |= this.RTCLatched.countercarry << 7;
+                value |= 0x3E;
+                return value;
+        }
+    }
+
+    RTCdataLatch(value){
+        if(!this.cartridge.MBC3) return;
+        if(!this.cartridge.timer) return;
+        if(!this.RTCaccess) return;
+
+        if(value === 0x00){
+            this.latching = true;
+        }
+        if(value === 0x01 && this.latching){
+            this.RTCLatched = this.RTC;
+            this.latching = false;
+        }
+    }
+
+    setRTCregisterSelected(value){
+        switch(this.RTCselectRegister){
+            case 0:
+                value = value & 0x3F;
+                this.RTC.seconds = value;
+                if(this.RTCLatched !== 0xFF)
+                    this.RTCLatched.seconds = value;
+                break;
+            case 1:
+                value = value & 0x3F;
+                this.RTC.minutes = value;
+                if(this.RTCLatched !== 0xFF)
+                    this.RTCLatched.minutes = value;
+                break;
+            case 2:
+                value = value & 0x1F;
+                this.RTC.hours = value;
+                if(this.RTCLatched !== 0xFF)
+                    this.RTCLatched.hours = value;
+                break;
+            case 3:
+                this.RTC.days = (this.RTC.days & 0x0100) | (value & 0xFF);
+                if(this.RTCLatched !== 0xFF)
+                    this.RTCLatched.days = (this.RTCLatched.days & 0x0100) | (value & 0xFF);
+                break;
+            case 4:
+                this.RTC.days = (this.RTC.days & 0xFF) | ((value & 0x01) << 8);
+                this.RTC.timerhalt = (value & 0x40) >> 6;
+                this.RTC.countercarry = (value & 0x80) >> 7;
+                if(this.RTCLatched !== 0xFF){
+                    this.RTCLatched.days = (this.RTCLatched.days & 0xFF) | ((value & 0x01) << 8);
+                    this.RTCLatched.timerhalt = (value & 0x40) >> 6;
+                    this.RTCLatched.countercarry = (value & 0x80) >> 7;
+                }
                 break;
         }
     }
@@ -279,11 +354,12 @@ export class MBC {
         }
 
         if(this.cartridge.MBC3){
+            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister !== 0xFF){
+                this.setRTCregisterSelected(value);
+                return;
+            }
+
             this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
-            return;
-
-            //RTC es en ram, escribe en el registro mapeado
-
         }
     }
 
@@ -317,7 +393,9 @@ export class MBC {
         }
 
         if(this.cartridge.MBC3){
-            //si RTC es mapeado, return RTC
+            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister !== 0xFF){
+                return this.getLatchedRTCselect();
+            }
 
             return this.ramBanks[this.ramBankNumber][address - 0xA000];
         }
@@ -325,19 +403,20 @@ export class MBC {
 
     timerTick(cycles){
         if(!this.cartridge.MBC3) return;
+        if(this.RTC.timerhalt === 1) return;
 
         this.clocks += cycles;
         if(this.clocks >= clockspersecond){
             this.RTC.seconds++;
-            if(this.RTC.seconds == 60){
+            if(this.RTC.seconds >= 60){
+                if(this.RTC.seconds === 60) this.RTC.minutes++;
                 this.RTC.seconds = 0;
-                this.RTC.minutes++;
-                if(this.RTC.minutes == 60){
+                if(this.RTC.minutes >= 60){
+                    if(this.RTC.minutes === 60) this.RTC.hours++;
                     this.RTC.minutes = 0;
-                    this.RTC.hours++;
-                    if(this.RTC.hours == 24){
+                    if(this.RTC.hours >= 24){
+                        if(this.RTC.hours === 24) this.RTC.days++;
                         this.RTC.hours = 0;
-                        this.RTC.days++;
                         if(this.RTC.days > 0x1FF){
                             this.RTC.days = 0;
                             this.RTC.countercarry = 1;

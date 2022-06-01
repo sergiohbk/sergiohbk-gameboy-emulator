@@ -100,6 +100,12 @@ export class Bus{
                 this.MBC.setModeFlag(value);
                 return;
             }
+
+            if(this.cartridge.MBC3){
+                this.MBC.RTCdataLatch(value);
+                return;
+            }
+            
             return;
         }
         if(address >= 0xA000 && address < 0xBFFF){
@@ -131,7 +137,7 @@ export class Bus{
         }
 
         if(address > 0x3FFF && address < 0x8000){
-            if(this.cartridge.MBC1 || this.cartridge.MBC5)
+            if(this.cartridge.MBC1 || this.cartridge.MBC5 || this.cartridge.MBC3)
                 return this.cartridge.rom[(address - 0x4000) + this.MBC.romBankNumber * 0x4000];
             
             return this.cartridge.rom[address];

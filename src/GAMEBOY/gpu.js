@@ -151,6 +151,7 @@ export class GPU {
     if ((this.LCDC & 0x80) != 0x80) return;
 
     var scanline = new Array(SCREEN_WIDTH);
+
     if ((this.LCDC & 0x1) == 0x1) {
       scanline = this.loadbgline();
     }
@@ -372,6 +373,7 @@ export class GPU {
           if(screenX < 0)
             continue;
 
+          //hay un error con los sprites, revisar
           const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != this.colores[0][0];
           
           if (!isBehind) {

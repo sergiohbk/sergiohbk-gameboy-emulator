@@ -11,6 +11,7 @@ export class Game extends React.Component{
             event.preventDefault();
         };
         reader.readAsArrayBuffer(file);
+        //arreglar error cuando cancelas subir archivo
     }
 
     render(){
