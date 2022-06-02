@@ -36,9 +36,6 @@ export class MBC {
             this.ramBanks[i] = new Uint8Array(0x2000);
             this.ramBanks[i].fill(0);
         }
-        if(this.cartridge.battery){
-            this.load();
-        }
     }
 
     save(){
@@ -61,24 +58,16 @@ export class MBC {
             document.body.removeChild(link);
         }
     }
-    load(){
+    load(save){
         if(this.cartridge.battery)
         { 
-            /* 
-            aplicar guardar partidas guardadas como cookies
-            o en el navegador del usuario de forma que puedan
-            ser recuperadas en esta funcion
-            
-            const save = fetch("./roms/POKEMON_BLUE.sav");
+            //añadir el timer al MBC3
             //comprobar si el save tiene datos
-            save.arrayBuffer().then(buffer => {
-                const savebuffer = new Uint8Array(buffer);
+            let savebuffer = new Uint8Array(save);
 
-                for(let i = 0; i < this.ramBanks.length; i++){
-                    this.ramBanks[i] = savebuffer.slice(i * 0x2000, (i + 1) * 0x2000);
-                }
-            });
-            */
+            for(let i = 0; i < this.ramBanks.length; i++){
+                this.ramBanks[i] = savebuffer.slice(i * 0x2000, (i + 1) * 0x2000);
+            }
         }
     }
 

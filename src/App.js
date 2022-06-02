@@ -12,6 +12,7 @@ export class App extends React.Component {
     super(props);
     this.state= {game: false, running: false};
     this.colores = [[156, 160, 76], [129, 133, 53], [48, 98, 48], [15, 56, 15]];
+    this.GAMEBOY = null;
   }
 
   render(){
@@ -34,16 +35,45 @@ export class App extends React.Component {
         <div className="container">
           <GameboyConsole />
         </div>
-        <Game setGame={this.setGame} />
+        <div className="loads">
+          <Game />
+          <span>antes de cerrar la pagina, recuerda guardar la partida</span>
+          <button onClick={this.handleSave}>Guardar partida</button>
+          <span>antes de iniciar el juego, puedes cargar tu partida guardada ↦</span>
+          <input id='input-sav' type="file" onChange={this.handleClick} accept=".sav" />
+        </div>
       </div>
     );
+  }
+
+  handleClick = (event) => {
+    if(this.state.running) return;
+    if(!this.state.game) return;
+
+    try{
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.load(reader.result);
+    };
+    reader.readAsArrayBuffer(file);
+    }catch(e){
+      console.log(e);
+    }
+  }
+
+  handleSave = () => {
+    if(!this.state.running) return;
+    if(!this.state.game) return;
+
+    this.GAMEBOY.cpu.bus.MBC.save();
   }
 
   componentDidMount(){
     this.GAMEBOY = new GAMEBOY(document.getElementById('screen-canvas'), this.colores);
   }
 
-  /* 
-    añadir poder guardar partida, cargar partida, MBC3.
-  */
+  load(data){
+    this.GAMEBOY.cpu.bus.MBC.load(data);
+  }
 }

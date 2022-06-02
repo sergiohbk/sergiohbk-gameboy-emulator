@@ -370,10 +370,8 @@ export class GPU {
           const palette = palleteColor[paletteIndex];
           const screenX = sprite.x + xTile;
 
-          if(screenX < 0)
-            continue;
-
-          //hay un error con los sprites, revisar
+          if(screenX < 0 || screenX >= SCREEN_WIDTH) continue;
+          
           const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != this.colores[0][0];
           
           if (!isBehind) {
