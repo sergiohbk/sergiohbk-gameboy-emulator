@@ -12,6 +12,7 @@ export const cyclesVblank = 4560;
 export const scanlinesPerFrame = SCREEN_HEIGHT;
 export const completeFrameScanlines = 154;
 export const cyclesPerFrame = cyclesScanline * scanlinesPerFrame + cyclesVblank;
+export const cyclesPerSecond = cyclesPerFrame * 60;
 export const OAMstart = 0xfe00;
 export const OAMend = 0xfe9f;
 export const MaxSpritesInLine = 10;

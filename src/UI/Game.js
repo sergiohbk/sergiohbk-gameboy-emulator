@@ -1,5 +1,6 @@
 import React from "react";
 import { store, loadGame } from "./Global";
+import "./Game.css";
 
 export class Game extends React.Component{
 
@@ -17,6 +18,7 @@ export class Game extends React.Component{
     render(){
         return(
             <div className="Game">
+                <span>cargar el juego</span>
                 <input id="input" type="file" onChange={this.handleClick} accept=".gb" />
             </div>
         );

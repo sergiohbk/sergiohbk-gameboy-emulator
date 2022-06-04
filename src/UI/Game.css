@@ -1,0 +1,10 @@
+.Game{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #ccc;
+    padding: 2px;
+}
+.Game span{
+    color: ivory;
+}

@@ -108,8 +108,15 @@ export class Bus{
             
             return;
         }
-        if(address >= 0xA000 && address < 0xBFFF){
+        if(address >= 0xA000 && address <= 0xBFFF){
             //escribiendo en la ram externa
+            if(this.cartridge.MBC3){
+                if(this.MBC.RTCaccess) {
+                    this.MBC.ramWrite(address, value);
+                    return;
+                }
+            }
+
             if(!this.MBC.externalRam)
                 return;
 
@@ -149,6 +156,11 @@ export class Bus{
         }
 
         if(address >= 0xA000 && address < 0xC000){
+            if(this.cartridge.MBC3){
+                if(this.MBC.RTCaccess)
+                    return this.MBC.ramRead(address);
+            }
+
             if(!this.MBC.externalRam) return 0xFF;
 
             return this.MBC.ramRead(address);

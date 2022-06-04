@@ -1,4 +1,4 @@
-import {clockspersecond} from './variables/globalConstants';
+import { cyclesPerSecond } from './variables/GPUConstants';
 
 export class MBC {
     constructor(rom, bus){
@@ -21,11 +21,11 @@ export class MBC {
         this.RTCLatched = 0xFF;
         this.RTCaccess = false;
         this.clocks = 0;
-        this.latching = false;
+        this.latching = true;
     }
 
     init(){
-        if(!this.cartridge.MBC1 && !this.cartridge.MBC5) return;
+        if(!this.cartridge.MBC1 && !this.cartridge.MBC5 && !this.cartridge.MBC3) return;
 
         if(!this.cartridge.externalRAM) 
             return;
@@ -74,15 +74,17 @@ export class MBC {
     enablingRam(value){
         value = value & 0x0F;
         if(value == 0xA){
-            this.externalRam = true;
-            if(this.cartridge.MBC3){
+            if(this.cartridge.externalRAM){
+                this.externalRam = true;
+            }
+            if(this.cartridge.timer){
                 this.RTCaccess = true;
             }
         }else{
             this.externalRam = false;
-            if(this.cartridge.MBC3){
+            
+            if(this.cartridge.timer)
                 this.RTCaccess = false;
-            }
         }
     }
 
@@ -207,12 +209,11 @@ export class MBC {
 
         if(value <= 0x03){
             this.ramBankNumber = value;
+            this.RTCselectRegister = 0xFF;
             return;
         }
         if(value >= 0x08 && value <= 0x0C){
             if(!this.cartridge.timer) return;
-            if(!this.RTCaccess) return;
-
             this.selectRegisterRTC(value);
         }
     }
@@ -234,36 +235,40 @@ export class MBC {
             case 0x0C:
                 this.RTCselectRegister = 4;
                 break;
+            default:
+                console.log("Error: Invalid RTC register");
+                this.RTCselectRegister = 0xFF;
         }
     }
 
-    getLatchedRTCselect(value){
+    getLatchedRTCselect(RTC){
         if(this.RTCLatched === 0xFF){
             return 0xFF;
         }
 
-        switch(this.RTCselectRegister){
+        switch(RTC){
             case 0:
-                return this.RTCLatched.seconds | 0xC0;
+                return this.RTCLatched.seconds & 0x3F;
             case 1:
-                return this.RTCLatched.minutes | 0xC0;
+                return this.RTCLatched.minutes & 0x3F;
             case 2:
-                return this.RTCLatched.hours | 0xE0;
+                return this.RTCLatched.hours & 0x1F;
             case 3:
-                return this.RTCLatched.days;
+                return this.RTCLatched.days & 0xFF;
             case 4:
-                value = (this.RTCLatched.days & 0x100) >> 8;
+                let value = (this.RTCLatched.days & 0x100) >> 8;
                 value |= this.RTCLatched.timerhalt << 6;
                 value |= this.RTCLatched.countercarry << 7;
-                value |= 0x3E;
+                value &= 0xC1;
                 return value;
+            default:
+                return 0xFF;
         }
     }
 
     RTCdataLatch(value){
         if(!this.cartridge.MBC3) return;
         if(!this.cartridge.timer) return;
-        if(!this.RTCaccess) return;
 
         if(value === 0x00){
             this.latching = true;
@@ -275,21 +280,20 @@ export class MBC {
     }
 
     setRTCregisterSelected(value){
+        if(this.RTCselectRegister === 0xFF) return;
+
         switch(this.RTCselectRegister){
             case 0:
-                value = value & 0x3F;
                 this.RTC.seconds = value;
                 if(this.RTCLatched !== 0xFF)
                     this.RTCLatched.seconds = value;
                 break;
             case 1:
-                value = value & 0x3F;
                 this.RTC.minutes = value;
                 if(this.RTCLatched !== 0xFF)
                     this.RTCLatched.minutes = value;
                 break;
             case 2:
-                value = value & 0x1F;
                 this.RTC.hours = value;
                 if(this.RTCLatched !== 0xFF)
                     this.RTCLatched.hours = value;
@@ -309,6 +313,8 @@ export class MBC {
                     this.RTCLatched.countercarry = (value & 0x80) >> 7;
                 }
                 break;
+            default:
+                console.log("Error: Invalid RTC register to set");
         }
     }
 
@@ -322,7 +328,6 @@ export class MBC {
 
 
     ramWrite(address, value){
-        if(!this.cartridge.MBC1 && !this.cartridge.MBC5) return;
 
         if(this.cartridge.MBC1){
             if(this.mode == 1){
@@ -343,11 +348,12 @@ export class MBC {
         }
 
         if(this.cartridge.MBC3){
-            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister !== 0xFF){
+            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister != 0xFF){
                 this.setRTCregisterSelected(value);
                 return;
             }
 
+            if(!this.cartridge.externalRAM) return;
             this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
         }
     }
@@ -363,7 +369,6 @@ export class MBC {
     }
 
     ramRead(address){
-        if(!this.cartridge.MBC1 && !this.cartridge.MBC5) return;
 
         if(this.cartridge.MBC1){
             if(this.mode == 1){
@@ -382,11 +387,14 @@ export class MBC {
         }
 
         if(this.cartridge.MBC3){
-            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister !== 0xFF){
-                return this.getLatchedRTCselect();
+            if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister != 0xFF){
+                return this.getLatchedRTCselect(this.RTCselectRegister);
             }
 
+            if(!this.cartridge.externalRAM) return 0xFF;
+
             return this.ramBanks[this.ramBankNumber][address - 0xA000];
+            
         }
     }
 
@@ -395,26 +403,28 @@ export class MBC {
         if(this.RTC.timerhalt === 1) return;
 
         this.clocks += cycles;
-        if(this.clocks >= clockspersecond){
+        if(this.clocks >= cyclesPerSecond){
             this.RTC.seconds++;
-            if(this.RTC.seconds >= 60){
-                if(this.RTC.seconds === 60) this.RTC.minutes++;
-                this.RTC.seconds = 0;
-                if(this.RTC.minutes >= 60){
-                    if(this.RTC.minutes === 60) this.RTC.hours++;
-                    this.RTC.minutes = 0;
-                    if(this.RTC.hours >= 24){
-                        if(this.RTC.hours === 24) this.RTC.days++;
-                        this.RTC.hours = 0;
-                        if(this.RTC.days > 0x1FF){
-                            this.RTC.days = 0;
-                            this.RTC.countercarry = 1;
-                        }
-                    }
-                }
-            }
+        }else{
+            return;
+        }
+        if(this.RTC.seconds >= 60){
+            if(this.RTC.seconds === 60) this.RTC.minutes++;
+            this.RTC.seconds = 0;
+        }
+        if(this.RTC.minutes >= 60){
+            if(this.RTC.minutes === 60) this.RTC.hours++;
+            this.RTC.minutes = 0;
+        }
+        if(this.RTC.hours >= 24){
+            if(this.RTC.hours === 24) this.RTC.days++;
+            this.RTC.hours = 0;
+        }
+        if(this.RTC.days >= 0x1FF){
+            this.RTC.days = 0;
+            this.RTC.countercarry = 1;
         }
 
-        this.clocks = this.clocks % clockspersecond;
+        this.clocks %= cyclesPerSecond;
     }
 }

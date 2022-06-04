@@ -4,10 +4,26 @@
     margin-top: 2em;
 }
 .loads{
-    font-size: 8px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     margin-top: 5px;
+    border: 1px solid #ccc;
+    padding: 2px;
 }
+.load,
+.save{
+    border: 1px solid #ccc;
+    padding: 2px;
+    margin: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.load span,
+.save span{
+    color: ivory;
+}
+
