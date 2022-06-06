@@ -24,14 +24,13 @@ export class GAMEBOY {
     this.cpu = new CPU();
     this.gpu = new GPU(this.cpu.bus, canvas, colores);
     this.lastTime = 0;
-    this.fps = 60;
+    this.fps = 59.7;
     this.then = 0;
     this.now = 0;
     this.interval = 0;
     this.elapsed = 0;
     this.cycles = 0;
     this.running = true;
-    this.frameFinishedCallback = null;
   }
 
   run() {

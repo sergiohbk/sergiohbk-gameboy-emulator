@@ -57,17 +57,17 @@ export class Bus{
             this.MBC.enablingRam(value);
             return;
         }
-        if(address >= 0x2000 && address < 0x3FFF){
+        if(address >= 0x2000 && address <= 0x3FFF){
             if(this.cartridge.MBC1){
                 this.MBC.setTheRomBankNumber(value);
                 return;
             }
             if(this.cartridge.MBC5){
-                if(address >= 2000 && address < 0x3000){
+                if(address < 0x3000){
                     this.MBC.setTheRomBankNumberMBC5(value, false);
                     return;
                 }
-                if(address >= 0x3000 && address < 0x4000){
+                if(address >= 0x3000){
                     this.MBC.setTheRomBankNumberMBC5(value, true);
                     return;
                 }
@@ -79,7 +79,7 @@ export class Bus{
             }
             return;
         }
-        if(address >= 0x4000 && address < 0x5FFF){
+        if(address >= 0x4000 && address <= 0x5FFF){
             if(this.cartridge.MBC1){
                 this.MBC.setTheRamBankNumber(value);
                 return;
@@ -109,17 +109,6 @@ export class Bus{
             return;
         }
         if(address >= 0xA000 && address <= 0xBFFF){
-            //escribiendo en la ram externa
-            if(this.cartridge.MBC3){
-                if(this.MBC.RTCaccess) {
-                    this.MBC.ramWrite(address, value);
-                    return;
-                }
-            }
-
-            if(!this.MBC.externalRam)
-                return;
-
             this.MBC.ramWrite(address, value);
         }
         if(address < 0x10000 && address >= 0x8000){
@@ -155,14 +144,7 @@ export class Bus{
             return this.memory[address];
         }
 
-        if(address >= 0xA000 && address < 0xC000){
-            if(this.cartridge.MBC3){
-                if(this.MBC.RTCaccess)
-                    return this.MBC.ramRead(address);
-            }
-
-            if(!this.MBC.externalRam) return 0xFF;
-
+        if(address >= 0xA000 && address <= 0xBFFF){
             return this.MBC.ramRead(address);
         }
         

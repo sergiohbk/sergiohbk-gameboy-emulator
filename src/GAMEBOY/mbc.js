@@ -82,9 +82,7 @@ export class MBC {
             }
         }else{
             this.externalRam = false;
-            
-            if(this.cartridge.timer)
-                this.RTCaccess = false;
+            this.RTCaccess = false;
         }
     }
 
@@ -133,8 +131,7 @@ export class MBC {
 
     setTheRomBankNumberMBC5(value, highbit){
         if(!this.cartridge.MBC5) return;
-
-        value = value & 0xFF;
+        
         if(!highbit){
             this.romBankNumber = (this.romBankNumber & 0x100) | value;
             return;
@@ -209,9 +206,14 @@ export class MBC {
 
         if(value <= 0x03){
             this.ramBankNumber = value;
+
+            if(!this.cartridge.timer) return;
+            
             this.RTCselectRegister = 0xFF;
+
             return;
         }
+
         if(value >= 0x08 && value <= 0x0C){
             if(!this.cartridge.timer) return;
             this.selectRegisterRTC(value);
@@ -330,6 +332,7 @@ export class MBC {
     ramWrite(address, value){
 
         if(this.cartridge.MBC1){
+            if(!this.externalRAM) return;
             if(this.mode == 1){
                 if(this.cartridge.ram_size == 4){
                     this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
@@ -352,8 +355,7 @@ export class MBC {
                 this.setRTCregisterSelected(value);
                 return;
             }
-
-            if(!this.cartridge.externalRAM) return;
+            //if(!this.externalRam) return;
             this.ramBanks[this.ramBankNumber][address - 0xA000] = value;
         }
     }
@@ -371,6 +373,7 @@ export class MBC {
     ramRead(address){
 
         if(this.cartridge.MBC1){
+            if(!this.externalRAM) return 0xFF;
             if(this.mode == 1){
                 if(this.cartridge.ram_size == 4){
                     return this.ramBanks[this.ramBankNumber][address - 0xA000];
@@ -390,11 +393,8 @@ export class MBC {
             if(this.cartridge.timer && this.RTCaccess && this.RTCselectRegister != 0xFF){
                 return this.getLatchedRTCselect(this.RTCselectRegister);
             }
-
-            if(!this.cartridge.externalRAM) return 0xFF;
-
+            //if(!this.externalRam) return 0xFF;
             return this.ramBanks[this.ramBankNumber][address - 0xA000];
-            
         }
     }
 
@@ -403,23 +403,28 @@ export class MBC {
         if(this.RTC.timerhalt === 1) return;
 
         this.clocks += cycles;
+
         if(this.clocks >= cyclesPerSecond){
-            this.RTC.seconds++;
+            this.RTC.seconds = (this.RTC.seconds + 1) & 0x3F;
         }else{
             return;
         }
-        if(this.RTC.seconds >= 60){
-            if(this.RTC.seconds === 60) this.RTC.minutes++;
+
+        if(this.RTC.seconds === 60){
+            this.RTC.minutes = (this.RTC.minutes + 1) & 0x3F;
             this.RTC.seconds = 0;
         }
-        if(this.RTC.minutes >= 60){
-            if(this.RTC.minutes === 60) this.RTC.hours++;
+
+        if(this.RTC.minutes === 60){
+            this.RTC.hours = (this.RTC.hours + 1) & 0x1F;
             this.RTC.minutes = 0;
         }
-        if(this.RTC.hours >= 24){
-            if(this.RTC.hours === 24) this.RTC.days++;
+
+        if(this.RTC.hours === 24){
+            this.RTC.days++;
             this.RTC.hours = 0;
         }
+
         if(this.RTC.days >= 0x1FF){
             this.RTC.days = 0;
             this.RTC.countercarry = 1;
