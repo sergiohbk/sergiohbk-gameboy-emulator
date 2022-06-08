@@ -5,46 +5,55 @@ export class MBC3 extends MBC {
     constructor(cartridge, bus) {
         super(cartridge, bus);
 
-        this.RTC = new RealTimeClock();
+        this.realtimeclock = new RealTimeClock();
     }
 
     enableRAM(value) {
         value = value & 0x0F;
         if (value == 0xA) {
             this.externalRAM = true;
-            this.RealTimeClock.accessRTC = true;
+            this.realtimeclock.accessRTC = true;
         } else {
             this.externalRAM = false;
-            this.RealTimeClock.accessRTC = false;
+            this.realtimeclock.accessRTC = false;
         }
     }
 
     selectROMBank(value) {
         if(value === 0){this.ROMbankSelect = 1; return;}
 
-        value = value & 0x7F;
+        value &= 0x7F;
         this.ROMbankSelect = value;
     }
     selectRAMBank(value) {
-        if(value <= 0x03)
+        if(value <= 0x03){
             this.RAMbankSelect = value;
+            this.realtimeclock.RTCselect = 0;
+            return;
+        }
         
-        this.RealTimeClock.selectRTC(value);
+        this.realtimeclock.selectRTC(value);
     }
     WriteRAM(value, address) {
-        if(!this.externalRAM) return;
+        //log que imprima el address el value y el RTCselect
 
-        if(this.RealTimeClock.RTCselect !== 0)
-            this.RealTimeClock.WriteRegister(value);
-        else
-            this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
+        if(this.realtimeclock.RTCselect > 0){
+            this.realtimeclock.WriteRegister(value);
+            return;
+        }
+
+        if(!this.cartridge.externalRAM) return;
+        
+        this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
     }
     ReadRAM(address) {
         if(!this.externalRAM) return 0xFF;
 
-        if(this.RealTimeClock.RTCselect !== 0)
-            return this.RealTimeClock.ReadRegister();
-        else
-            return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
+        if(this.realtimeclock.RTCselect > 0)
+            return this.realtimeclock.ReadRegister();
+            
+        if(!this.cartridge.externalRAM) return 0xFF;
+        
+        return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
     }
 }

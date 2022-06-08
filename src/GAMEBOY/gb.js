@@ -54,7 +54,7 @@ export class GAMEBOY {
       }
 
       if(this.cpu.bus.cartridge.timer)
-        this.cpu.bus.MBC.timerTick(this.cycles);
+        this.cpu.bus.mbcC.MBC.realtimeclock.tick(this.cycles);
 
       this.gpu.renderTheFrame();
 
@@ -85,7 +85,6 @@ export class GAMEBOY {
   loadRom(game) {
     const rombuffer = new Uint8Array(game);
     this.cpu.bus.setRom(rombuffer);
-    this.cpu.bus.MBC.init();
     console.log(this.cpu.bus.cartridge);
   }
 }

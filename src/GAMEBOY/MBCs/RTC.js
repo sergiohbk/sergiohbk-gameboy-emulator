@@ -22,8 +22,6 @@ export class RealTimeClock{
     selectRTC(value){
         if(value >= 0x08 && value <= 0x0C)
             this.RTCselect = value;
-        else
-            this.RTCselect = 0;
     }
 
     latchRTC(value){
@@ -36,6 +34,8 @@ export class RealTimeClock{
     }
 
     WriteRegister(value){
+        if(!this.accessRTC) return;
+
         switch(this.RTCselect){
             case 0x08:
                 this.clock.seconds = value;
@@ -61,17 +61,22 @@ export class RealTimeClock{
                 this.clock.days = (this.clock.days & 0xFF) | ((value & 0x01) << 8);
                 this.clock.timerhalt = (value & 0x40) >> 6;
                 this.clock.countercarry = (value & 0x80) >> 7;
-                if(this.cloneRTC !== 0xFF)
+                if(this.cloneRTC !== 0xFF){
                     this.cloneRTC.days = (this.cloneRTC.days & 0xFF) | ((value & 0x01) << 8);
                     this.cloneRTC.timerhalt = (value & 0x40) >> 6;
                     this.cloneRTC.countercarry = (value & 0x80) >> 7;
+                }
                 break;
+            default:
+                this.RTCselect = 0;
         }
     }
 
     ReadRegister(){
+        if(!this.accessRTC) return 0xFF;
+        
         if(this.cloneRTC === 0xFF)
-            return 0xFF;
+            throw new Error("Clone RTC not set");
         
         switch(this.RTCselect){
             case 0x08:
@@ -83,10 +88,13 @@ export class RealTimeClock{
             case 0x0B:
                 return this.cloneRTC.days & 0xFF;
             case 0x0C:
-                let value = this.cloneRTC.days & 0x100 >> 8;
-                value |= this.cloneRTC.timerhalt << 6;
-                value |= this.cloneRTC.countercarry << 7;
+                let value = (this.cloneRTC.days & 0x100) >> 8;
+                value |= (this.cloneRTC.timerhalt << 6);
+                value |= (this.cloneRTC.countercarry << 7);
+                value &= 0xC1;
                 return value;
+            default:
+                return 0xFF;
         }
     }
 
@@ -115,11 +123,11 @@ export class RealTimeClock{
             this.clock.days++;
         }
 
-        if(this.clock.days === 0x1FF){
+        if(this.clock.days > 0x1FF){
             this.clock.days = 0;
             this.clock.countercarry = 1;
         }
 
-        this.cycles = 0;
+        this.cycles %= cyclesPerSecond;
     }
 }
