@@ -1,5 +1,3 @@
-import { setIME } from "../interrumpts";
-
 export function otherinstructions(instruction){
     //NOP
     //0x00
@@ -175,7 +173,7 @@ export function otherinstructions(instruction){
         opcode: 0xF3,
         cycles: 4,
         execute: function(cpu){
-            setIME(false);
+            cpu.bus.IME = false;
             cpu.registers.pc += 1;
         }
     };
@@ -186,7 +184,7 @@ export function otherinstructions(instruction){
         opcode: 0xFB,
         cycles: 4,
         execute: function(cpu){
-            setIME(true);
+            cpu.bus.IME = true;
             cpu.registers.pc += 1;
         }
     };

@@ -7,7 +7,7 @@ import { aluinstructions } from "./instrucciones/ALUinstructions";
 import { stackinstructions } from "./instrucciones/stackinstructions";
 import { otherinstructions } from "./instrucciones/otherinstructions";
 import { bitinstuctions } from "./instrucciones/bitinstructions";
-import { IME, IF_pointer, interrupts_pointer, masterInterruptPointer, setIME } from "./interrumpts";
+import { IF_pointer, interrupts_pointer, masterInterruptPointer } from "./interrumpts";
 import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
 
 export class CPU{
@@ -50,7 +50,7 @@ export class CPU{
         this.ticks = 0xABCC;
         this.bus.memory[0xFF05] = 0x00;
         this.bus.memory[0xFF06] = 0x00;
-        this.bus.memory[0xFF07] = 0x00;
+        this.bus.memory[0xFF07] = 0xF8;
         this.bus.memory[0xFF0F] = 0xE1;
         this.bus.memory[0xFF10] = 0x80;
         this.bus.memory[0xFF11] = 0xBF;
@@ -71,6 +71,7 @@ export class CPU{
         this.bus.memory[0xFF25] = 0xF3;
         this.bus.memory[0xFF26] = 0xF1;
         this.bus.memory[0xFF40] = 0x91;
+        this.bus.memory[0xFF41] = 0x85;
         this.bus.memory[0xFF42] = 0x00;
         this.bus.memory[0xFF43] = 0x00;
         this.bus.memory[0xFF45] = 0x00;
@@ -82,19 +83,24 @@ export class CPU{
         this.bus.memory[0xFFFF] = 0x00;
     }
 
+    activateBootrom(){
+        this.bus.bootromActive = true;
+        this.registers.bootstrap = true;
+    }
+
     interruptsCycle(){
         
         let interrupt_request = this.bus.read(IF_pointer);
         let interrupt_enable = this.bus.read(masterInterruptPointer);
         let interrupt = (interrupt_request & interrupt_enable) & 0x1F;
+
         if(interrupt > 0){
             this.registers.halted = false;
             this.cpu_cycles += 4;
         }else{
             return;
         }
-
-        if(!IME) return;
+        if(!this.bus.IME) return;
 
         if((interrupt & 0x1) == 0x1){
             this.interrupt_VBlank();
@@ -160,7 +166,7 @@ export class CPU{
             + " carryflag: " + this.registers.carry
             + " halfcarryflag: " + this.registers.halfcarry
             + " subflag: " + this.registers.subtraction
-            + " IME: " + IME
+            + " IME: " + this.bus.IME
             + " interrupt_enable: " + this.bus.read(masterInterruptPointer).toString(16)
             + " interrupt_request: " + this.bus.read(IF_pointer).toString(16)
             + " mbc rom bank: " + this.bus.MBC.romBankNumber);
@@ -182,35 +188,35 @@ export class CPU{
         this.registers.pc = interrupts_pointer.VBlank;
         this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFE;
         this.cpu_cycles += 20;
-        setIME(false);
+        this.bus.IME = false;
     }
     interrupt_LCDSTAT(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.LCDSTAT;
         this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFD;
         this.cpu_cycles += 20;
-        setIME(false);
+        this.bus.IME = false;
     }
     interrupt_Timer(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Timer;
         this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xFB;
         this.cpu_cycles += 20;
-        setIME(false);
+        this.bus.IME = false;
     }
     interrupt_Serial(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Serial;
         this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xF7;
         this.cpu_cycles += 20;
-        setIME(false);
+        this.bus.IME = false;
     }
     interrupt_Joypad(){
         this.registers.stackPush16(this.registers.pc, this.bus);
         this.registers.pc = interrupts_pointer.Joypad;
         this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] & 0xEF;
         this.cpu_cycles += 20;
-        setIME(false);
+        this.bus.IME = false;
     }
 
     timerCycle(){
@@ -225,7 +231,8 @@ export class CPU{
             this.ticks = 0;
         }
 
-        if((this.bus.read(TAC_pointer) & 0x4) == 0) return;
+        const TACenable = this.bus.read(TAC_pointer) & 0x4;
+        if( TACenable === 0) return;
 
         this.ctu_TIMA = this.cyclesToUpTIMA();
         this.timerticks += this.cpu_cycles;
@@ -241,7 +248,8 @@ export class CPU{
         }
     }
     cyclesToUpTIMA(){
-        switch(this.bus.read(TAC_pointer) & 0x3){
+        const TAC = this.bus.read(TAC_pointer) & 0x3;
+        switch(TAC){
             case 0:
                 return 1024;
             case 1:
@@ -272,21 +280,16 @@ export class CPU{
             this.bus.write(0xFF02, 0x00);
         }
     }
-    printTest(){
-        if(this.test.length > 15){
-            //console.log(this.test);
-        }
-    }
     haltHandler(){
-        if(IME){
+        if(this.bus.IME){
             return true;
         }
-        else if(!IME && this.bus.read(IF_pointer) != 0x00 && this.bus.read(masterInterruptPointer) != 0x00){
+        else if(!this.bus.IME && this.bus.read(IF_pointer) != 0x00 && this.bus.read(masterInterruptPointer) != 0x00){
             //halt bug (programar)
             this.registers.halted = false;
             return false;
         }
-        else if(!IME){
+        else if(!this.bus.IME){
             return true;
         }
     }

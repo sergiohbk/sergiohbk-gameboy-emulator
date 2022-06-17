@@ -49,8 +49,9 @@ export class MBC3 extends MBC {
     ReadRAM(address) {
         if(!this.externalRAM) return 0xFF;
 
-        if(this.realtimeclock.RTCselect > 0)
+        if(this.realtimeclock.RTCselect > 0){
             return this.realtimeclock.ReadRegister();
+        }
             
         if(!this.cartridge.externalRAM) return 0xFF;
         

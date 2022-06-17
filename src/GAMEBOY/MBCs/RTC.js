@@ -103,10 +103,12 @@ export class RealTimeClock{
 
         this.cycles += cycles;
 
-        if(this.cycles >= cyclesPerSecond)
+        if(this.cycles >= cyclesPerSecond){
             this.clock.seconds = (this.clock.seconds + 1) & 0x3F;
-        else
+        }
+        else{
             return;
+        }
         
         if(this.clock.seconds === 60){
             this.clock.seconds = 0;

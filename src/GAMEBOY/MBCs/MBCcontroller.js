@@ -44,11 +44,13 @@ export class MBCcontroller{
         this.MBC.selectRAMBank(value);
     }
     optionSelect(value){
-        if(this.cartridge.MBC1)
+        if(this.cartridge.MBC1){
             this.MBC.selectMode(value);
+        }
 
-        if(this.cartridge.MBC3)
+        if(this.cartridge.MBC3){
             this.MBC.realtimeclock.latchRTC(value);
+        }
     }
     writeRAM(value, address){
         this.MBC.WriteRAM(value, address);

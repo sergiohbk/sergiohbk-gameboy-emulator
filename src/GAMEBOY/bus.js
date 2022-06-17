@@ -1,6 +1,6 @@
 import { Cartridge } from "./cartridge";
 import { INTERRUPT_ENABLE_REGISTER, MEMORY_SIZE } from "./variables/busConstants";
-import { DIV_pointer } from "./timers";
+import { DIV_pointer, TAC_pointer } from "./timers";
 import { DMA } from "./dma";
 import { Controller } from "./controller";
 import { IF_pointer } from "./interrumpts";
@@ -30,6 +30,7 @@ export class Bus{
         for(let i = 0x100; i < 0x8000; i++){
             this.memory[i] = 0xFF;
         }
+        this.IME = false;
     }
     
     setRom(rom){
@@ -80,10 +81,12 @@ export class Bus{
             this.memory[address] = value;
             return;
         }
-        if(address >= 0x8000 && address <= 0xFFFF)
+        if(address >= 0x8000 && address <= 0xFFFF){
             this.memory[address] = value;
-        else
+        }
+        else{
             throw new Error("Error: address out of range " + address.toString(16) + " " + value.toString(16));
+        }
     }
     read(address){
         if (address <= 0xFF){

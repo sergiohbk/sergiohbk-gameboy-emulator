@@ -46,7 +46,7 @@ export class GAMEBOY {
 
     if (this.elapsed > this.interval){
       this.then = this.now - (this.elapsed % this.interval);
-      
+
       while (this.cycles < cyclesPerFrame) {
         let cyclesFrame = this.cpu.tick();
         this.gpu.tick(cyclesFrame);

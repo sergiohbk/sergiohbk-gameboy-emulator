@@ -10,36 +10,48 @@ export class MBC1 extends MBC {
     }
 
     selectROMBank(value) {
-        if(value === 0x00){this.ROMbankSelect = 1; return;}
+        if(value === 0x00){
+            this.ROMbankSelect = 1; 
+            return;
+        }
 
         const MASK = this.getMask();
         value &= MASK;
         this.ROMbankSelect = value;
-
-        if(this.mode !== 1) return;
-        //comprobar si lo anterior se realiza
-        if(this.cartridge.rom_size === 64)
-            this.ROMbankSelect |= (value & 0x01) << 5;
-        else if(this.cartridge.rom_size === 128)
-            this.ROMbankSelect |= value << 5;
     }
     selectZERObank() {
-        if(this.cartridge.rom_size < 64) return;
-
-        if(this.cartridge.rom_size === 64)
-            this.ZERObankSelect = (this.ROMbankSelect & 0x01) << 5;
-        else if(this.cartridge.rom_size === 128)
-            this.ZERObankSelect = (this.ROMbankSelect & 0x03) << 5;
+        if(this.cartridge.rom_size < 64){
+             this.ZERObankSelect = 0;
+             return;
+        }
+        if(this.cartridge.rom_size >= 64 && this.cartridge.rom_size < 128){
+            this.ZERObankSelect = (this.RAMbankSelect & 0x01) << 5;
+            return;
+        }
+        if(this.cartridge.rom_size >= 128){
+            this.ZERObankSelect = (this.RAMbankSelect & 0x03) << 5;
+            return;
+        }
     }
     selectHIGHbank() {
-        if(this.cartridge.rom_size < 64)
+        if(this.cartridge.rom_size < 64){
             this.HIGHbankSelect = this.ROMbankSelect;
-        else if(this.cartridge.rom_size === 64)
+            return;
+        }
+        else if(this.cartridge.rom_size >= 64 && this.cartridge.rom_size < 128){
             this.HIGHbankSelect = this.ROMbankSelect | ((this.RAMbankSelect & 0x01) << 5);
-        else if(this.cartridge.rom_size === 128)
+            this.HIGHbankSelect %= this.cartridge.rom_size
+            return;
+        }
+            
+        else if(this.cartridge.rom_size >= 128){
             this.HIGHbankSelect = this.ROMbankSelect | ((this.RAMbankSelect & 0x03) << 5);
+            this.HIGHbankSelect %= this.cartridge.rom_size
+            return;
+        }   
     }
     selectRAMBank(value) {
+        if(this.cartridge.ram_size < 4) return;
         value &= 0x03;
         this.RAMbankSelect = value;
     }
@@ -102,12 +114,12 @@ export class MBC1 extends MBC {
         if(!this.externalRAM) return 0xFF;
         switch(this.mode){
             case 0:
-                if(this.cartridge.ram_size < 4)
+                /*if(this.cartridge.ram_size < 4)
                     return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
-                else
-                    return this.RAMbanks[0][address - 0xA000];
+                else*/
+                return this.RAMbanks[0][address - 0xA000];
             case 1:
-                    return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
+                return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
         }
     }
 }
