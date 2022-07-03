@@ -33,7 +33,6 @@ function Screen(){
             </div>
         </div>
     );
-    //sustituir div por canvas
 }
 
 export function GameboyScreen(){

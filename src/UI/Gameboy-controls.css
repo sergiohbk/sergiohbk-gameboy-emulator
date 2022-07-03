@@ -221,6 +221,12 @@
     justify-content: center;
     align-items: center;
 }
+
+.btn .pressed{
+    box-shadow: 1px -4px 0 -3px #7c4b5b inset,
+    0px 2px 4px #FFFE inset;
+}
+
 .btn .name{
     font-family: "NES controller MrShrike";
     font-size: 18px;

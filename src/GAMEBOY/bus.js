@@ -1,6 +1,6 @@
 import { Cartridge } from "./cartridge";
 import { INTERRUPT_ENABLE_REGISTER, MEMORY_SIZE } from "./variables/busConstants";
-import { DIV_pointer, TAC_pointer } from "./timers";
+import { DIV_pointer} from "./timers";
 import { DMA } from "./dma";
 import { Controller } from "./controller";
 import { IF_pointer } from "./interrumpts";

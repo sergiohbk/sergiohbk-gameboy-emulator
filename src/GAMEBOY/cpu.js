@@ -12,20 +12,27 @@ import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
 
 export class CPU{
     constructor(){
+        //registros y bus
         this.registers = new Registers();
+        this.bus = new Bus();
+
+        //opcode actual
         this.current_opcode = 0x00;
+
+        //lista de instrucciones
         this.instructions = [];
         this.cbinstructions = [];
-        this.pause = false;
+        this.defineInstructions();
+
         this.ticks = 0;
         this.timerticks = 0;
-        this.bus = new Bus();
         this.pause = false;
-        this.defineInstructions();
-        if(!this.bus.bootromActive)
-            this.inicialiceMemory();
         this.cpu_cycles = 0;
         this.test = "";
+
+        //incializacion de memoria
+        if(!this.bus.bootromActive)
+            this.inicialiceMemory();
     }
 
     tick(){
@@ -102,19 +109,19 @@ export class CPU{
         }
         if(!this.bus.IME) return;
 
-        if((interrupt & 0x1) == 0x1){
+        if((interrupt & 0x1) === 0x1){
             this.interrupt_VBlank();
         }
-        else if((interrupt & 0x2) == 0x2){
+        else if((interrupt & 0x2) === 0x2){
             this.interrupt_LCDSTAT();
         }
-        else if((interrupt & 0x4) == 0x4){
+        else if((interrupt & 0x4) === 0x4){
             this.interrupt_Timer();
         }
-        else if((interrupt & 0x8) == 0x8){
+        else if((interrupt & 0x8) === 0x8){
             this.interrupt_Serial();
         }
-        else if((interrupt & 0x10) == 0x10){
+        else if((interrupt & 0x10) === 0x10){
             this.interrupt_Joypad();
         }
     }
@@ -135,7 +142,7 @@ export class CPU{
 
             this.cpu_cycles += this.instructions[this.current_opcode].cycles;
             this.instructions[this.current_opcode].execute(this);
-            if(this.current_opcode == 0xCB){
+            if(this.current_opcode === 0xCB){
                 this.cpu_cycles += this.instructions[this.current_opcode].cycles;
             }
 
@@ -155,7 +162,7 @@ export class CPU{
     }
 
     breakpoint(pc, breakpoint){
-        if(this.registers.pc == pc){
+        if(this.registers.pc === pc){
             this.pause = breakpoint;
             console.log("breakpoint at " + pc.toString(16) + " " + this.instructions[this.current_opcode].name + " " + this.registers.sp.toString(16)
             + " registro HL: " + this.registers.getHL().toString(16)
@@ -238,7 +245,7 @@ export class CPU{
         this.timerticks += this.cpu_cycles;
 
         if(this.timerticks >= this.ctu_TIMA){
-            if(this.bus.read(TIMA_pointer) == 0xFF){
+            if(this.bus.read(TIMA_pointer) === 0xFF){
                 this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x4;
                 this.bus.memory[TIMA_pointer] = this.bus.memory[TMA_pointer];
             }else{
@@ -258,6 +265,8 @@ export class CPU{
                 return 64;
             case 3:
                 return 256;
+            default:
+                return 1024;
         }
     }
     teststack(){
@@ -272,25 +281,5 @@ export class CPU{
 
         //registers push y pop funcionan
         //calls parecen funcionar
-    }
-    updateTest (){
-        if(this.bus.read(0xFF02) == 0x81){
-            let letra = this.bus.read(0xFF01);
-            this.test += String.fromCharCode(letra);
-            this.bus.write(0xFF02, 0x00);
-        }
-    }
-    haltHandler(){
-        if(this.bus.IME){
-            return true;
-        }
-        else if(!this.bus.IME && this.bus.read(IF_pointer) != 0x00 && this.bus.read(masterInterruptPointer) != 0x00){
-            //halt bug (programar)
-            this.registers.halted = false;
-            return false;
-        }
-        else if(!this.bus.IME){
-            return true;
-        }
     }
 }

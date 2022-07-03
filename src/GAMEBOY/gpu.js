@@ -19,7 +19,7 @@ export class GPU {
   constructor(bus, canvas, colores = [[255,255,255], [192,192,192], [96,96,96], [0,0,0]]) {
     this.bus = bus;
     this.createDisplay(canvas);
-    this.tileset = new Array();
+    this.tileset = [];
     this.bytehigh = 0;
     this.bytelow = 0;
     this.x = 0;
@@ -27,7 +27,7 @@ export class GPU {
     this.tile = 0;
     this.flags = 0;
     this.LCDC = 0;
-    this.bytesTile = new Array();
+    this.bytesTile = [];
     this.tilesetloading = false;
     this.cyclesCounter = 0;
     this.LCDCstatus = 0;
@@ -48,6 +48,8 @@ export class GPU {
         return "OAM";
       case 3:
         return "VRAM";
+      default:
+        return "OAM";
     }
   }
   setLCDCmode(mode) {
@@ -65,10 +67,15 @@ export class GPU {
       case "VRAM":
         this.bus.write(0xff41, (lastLCDCstatus & 0xfc) | 0x3);
         break;
+      default:
+        this.bus.write(0xff41, (lastLCDCstatus & 0xfc) | 0x2);
+        break;
     }
   }
   
   createDisplay(canvas) {
+    if(canvas === undefined) return;
+
     this.screen = canvas;
     this.ctx = this.screen.getContext("2d");
     this.ctx.shadowInset = true;
@@ -105,7 +112,7 @@ export class GPU {
 
           let lycompare = this.lyCompare();
         
-          let lycInterrupt = (this.bus.read(0xff41) & 0x40) == 0x40;
+          let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
           if (lycompare && lycInterrupt) {
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
           }
@@ -131,12 +138,12 @@ export class GPU {
         if (this.cyclesCounter >= cyclesScanlineVRAM) {
           this.cyclesCounter %= cyclesScanlineVRAM;
 
-          let hBlankInterrupt = (this.bus.read(0xff41) & 0x8) == 0x8;
+          let hBlankInterrupt = (this.bus.read(0xff41) & 0x8) === 0x8;
           if (hBlankInterrupt) {
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
           }
           let lycompare = this.lyCompare();
-          let lycInterrupt = (this.bus.read(0xff41) & 0x40) == 0x40;
+          let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
           if (lycompare && lycInterrupt) {
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
           }
@@ -144,21 +151,23 @@ export class GPU {
           this.setLCDCmode("HBlank");
         }
         break;
+      default:
+        break;
     }
   }
   bufferringScanLine() {
     this.LCDC = this.bus.read(0xff40);
-    if ((this.LCDC & 0x80) != 0x80) return;
+    if ((this.LCDC & 0x80) !== 0x80) return;
 
     var scanline = new Array(SCREEN_WIDTH);
 
-    if ((this.LCDC & 0x1) == 0x1) {
+    if ((this.LCDC & 0x1) === 0x1) {
       scanline = this.loadbgline();
     }
-    if ((this.LCDC & 0x20) == 0x20) {
+    if ((this.LCDC & 0x20) === 0x20) {
       this.loadWindowLine(scanline);
     }
-    if ((this.LCDC & 0x2) == 0x2) {
+    if ((this.LCDC & 0x2) === 0x2) {
       this.loadspriteline(scanline);
     }
     this.drawtoScreen(scanline);
@@ -168,11 +177,11 @@ export class GPU {
     let backgroundline = [];
     const scrolledY = (this.bus.read(0xff42) + this.bus.read(0xff44)) & 0xff;
     //const ly = this.bus.read(0xFF44);
-    const tilemapMemPos = (this.LCDC & 0x08) == 0x08 ? 0x9c00 : 0x9800;
-    const backgroundMemPos = (this.LCDC & 0x10) == 0x10 ? 0x8000 : 0x8800;
+    const tilemapMemPos = (this.LCDC & 0x08) === 0x08 ? 0x9c00 : 0x9800;
+    const backgroundMemPos = (this.LCDC & 0x10) === 0x10 ? 0x8000 : 0x8800;
 
     for (let screenX = 0; screenX < SCREEN_WIDTH; screenX++) {
-      if ((this.LCDC & 0x1) == 0x1) {
+      if ((this.LCDC & 0x1) === 0x1) {
         const scrolledX = (this.bus.read(0xff43) + screenX) & 0xff;
         const tileMapIndex = this.getTileIndexFromPixelLocation(
           scrolledX,
@@ -254,13 +263,13 @@ export class GPU {
     let wx = this.bus.read(0xff4b);
     if (ly < wy || wx > 166) return;
     let windowline = [];
-    let windowTileMapMemPos = (this.LCDC & 0x40) == 0x40 ? 0x9c00 : 0x9800;
-    let backgroundMemPos = (this.LCDC & 0x10) == 0x10 ? 0x8000 : 0x8800;
+    let windowTileMapMemPos = (this.LCDC & 0x40) === 0x40 ? 0x9c00 : 0x9800;
+    let backgroundMemPos = (this.LCDC & 0x10) === 0x10 ? 0x8000 : 0x8800;
     var windowTileMap;
 
     const paletteColors = this.getColourPalette();
 
-    if (backgroundMemPos == 0x8800) {
+    if (backgroundMemPos === 0x8800) {
       let signed = this.bus.memory.subarray(
         windowTileMapMemPos,
         windowTileMapMemPos + 0x1000
@@ -295,7 +304,7 @@ export class GPU {
       const yPosInTile = yPositionInTile - tilePixelPosition[1];
 
       const bytePositionInTile = yPosInTile * 2;
-      const signed = backgroundMemPos == 0x8800 ? 128 : 0;
+      const signed = backgroundMemPos === 0x8800 ? 128 : 0;
       const tileCharIndex = windowTileMap[tileMapIndex] + signed;
       const tileCharBytePosition = tileCharIndex * 16;
 
@@ -319,15 +328,15 @@ export class GPU {
   }
 
   putPixelsInScanLine(scanline, pixels, x) {
-    if (pixels == undefined) return;
+    if (pixels === undefined) return;
     for (let i = 0; i < pixels.length; i++) {
-      if (pixels[i] != -1) scanline[x + i] = pixels[i];
+      if (pixels[i] !== -1) scanline[x + i] = pixels[i];
     }
   }
 
   loadspriteline(scanline) {
     const LCDC = this.bus.read(0xff40);
-    const spriteHeight = (LCDC & 0x04) == 0x04 ? 16 : 8;
+    const spriteHeight = (LCDC & 0x04) === 0x04 ? 16 : 8;
     let spriteline = [];
     const sprites = this.getNumberOfSpritesInOAM();
     const ly = this.bus.read(0xff44);
@@ -335,14 +344,14 @@ export class GPU {
     let listSprites = [];
 
     for (let i = 0; i < sprites.length; i++) {
-      if(MaxSpritesInLine == 10) break;
+      if(MaxSpritesInLine === 10) break;
       if (ly >= sprites[i].y && sprites[i].y + spriteHeight > ly && sprites[i].x >= -7 && sprites[i].x <= SCREEN_WIDTH){
         listSprites.push(sprites[i]);
         MaxSpritesInLine++;
       }
     }
 
-    if(listSprites.length == 0) return;
+    if(listSprites.length === 0) return;
 
     listSprites.sort((a, b) => { return a.x - b.x }).reverse();
 
@@ -372,7 +381,7 @@ export class GPU {
 
           if(screenX < 0 || screenX >= SCREEN_WIDTH) continue;
           
-          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] != this.colores[0][0];
+          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] !== this.colores[0][0];
           
           if (!isBehind) {
             if (paletteIndex === 0) {
@@ -465,13 +474,13 @@ export class GPU {
   drawtoScreen(scanline) {
     const ly = this.bus.read(0xff44);
 
-    if(scanline == null || scanline == undefined) return;
+    if(scanline == null || scanline === undefined) return;
 
     for (let i = 0; i < SCREEN_WIDTH; i++) {
       let pixel = scanline[i];
 
-      if (pixel == undefined) continue;
-      if (pixel[0] == -1) continue;
+      if (pixel === undefined) continue;
+      if (pixel[0] === -1) continue;
 
       let index = i * 4 + ly * SCREEN_WIDTH * 4;
       this.imageData.data[index] = pixel[0];
@@ -493,7 +502,7 @@ export class GPU {
   lyCompare() {
     let lyc = this.bus.read(0xff45);
     let ly = this.bus.read(0xff44);
-    if (ly == lyc) {
+    if (ly === lyc) {
         this.bus.memory[0xff41] |= 0x4;
         return true;
     } else {
@@ -532,6 +541,8 @@ export class GPU {
         return this.colores[2];
       case 3:
         return this.colores[3];
+      default:
+        return this.colores[0];
     }
   }
 }

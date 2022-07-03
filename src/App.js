@@ -4,7 +4,7 @@ import './UI/Gameboy-ui.css';
 import React from 'react';
 import { GAMEBOY } from './GAMEBOY/gb';
 import { Game } from './UI/Game';
-import { store } from './UI/Global';
+import { store, AkeyRelease, BkeyRelease, BkeyPress, AkeyPress } from './UI/Global';
 
 export class App extends React.Component {
 
@@ -18,12 +18,12 @@ export class App extends React.Component {
     store.subscribe(() => {
       if(store.getState().game != null && !this.state.game){
         this.GAMEBOY.loadRom(store.getState().game);
-        this.state.game = true;
+        this.setState({game: true});
       }
       if(store.getState().turnOnGameboy){
         if(this.state.game && !this.state.running){
           this.GAMEBOY.run();
-          this.state.running = true;
+          this.setState({running: true});
           console.log("game started");
         }
       }
@@ -74,6 +74,22 @@ export class App extends React.Component {
 
   componentDidMount(){
     this.GAMEBOY = new GAMEBOY(document.getElementById('screen-canvas'), this.colores);
+    document.addEventListener('keydown', (event) => {
+      if(event.key === 'j'){
+        store.dispatch(BkeyPress);
+      }
+      if(event.key === 'k'){
+        store.dispatch(AkeyPress);
+      }
+    });
+    document.addEventListener('keyup', (event) => {
+      if(event.key === 'j'){
+        store.dispatch(BkeyRelease);
+      }
+      if(event.key === 'k'){
+        store.dispatch(AkeyRelease);
+      }
+    });
   }
 
   load(data){
