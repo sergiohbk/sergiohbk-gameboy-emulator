@@ -8,13 +8,14 @@ import { stackinstructions } from "./instrucciones/stackinstructions";
 import { otherinstructions } from "./instrucciones/otherinstructions";
 import { bitinstuctions } from "./instrucciones/bitinstructions";
 import { IF_pointer, interrupts_pointer, masterInterruptPointer } from "./interrumpts";
-import { DIV_pointer, TAC_pointer, TIMA_pointer, TMA_pointer } from "./timers";
+import { Timer } from "./timers";
 
 export class CPU{
     constructor(){
         //registros y bus
-        this.registers = new Registers();
         this.bus = new Bus();
+        this.registers = new Registers();
+        this.timer = new Timer(this.bus);
 
         //opcode actual
         this.current_opcode = 0x00;
@@ -24,11 +25,12 @@ export class CPU{
         this.cbinstructions = [];
         this.defineInstructions();
 
-        this.ticks = 0;
-        this.timerticks = 0;
+
         this.pause = false;
         this.cpu_cycles = 0;
-        this.test = "";
+
+        this.log = [];
+        this.startLogging = false;
 
         //incializacion de memoria
         if(!this.bus.bootromActive)
@@ -41,20 +43,21 @@ export class CPU{
 
         if(this.registers.halted){
             this.cpu_cycles += 1;
-            this.timerCycle();
+            this.timer.tick(this.cpu_cycles);
             let cycles = this.cpu_cycles;
             this.cpu_cycles = 0;
             return cycles;
         }
         this.cpu_execute();
-        this.timerCycle();
+        this.timer.tick(this.cpu_cycles);
         let cycles = this.cpu_cycles;
         this.cpu_cycles = 0;
         return cycles;
     }
 
     inicialiceMemory(){
-        this.ticks = 0xABCC;
+        this.timer.ticks = 0xABCC;
+        this.bus.memory[0xFF04] = 0xAB;
         this.bus.memory[0xFF05] = 0x00;
         this.bus.memory[0xFF06] = 0x00;
         this.bus.memory[0xFF07] = 0xF8;
@@ -95,6 +98,53 @@ export class CPU{
         this.registers.bootstrap = true;
     }
 
+    cpu_execute(){
+        /* 
+          lee el opcode en la posicion del program counter
+          y lo guarda en la variable current_opcode
+          comprueba despues en la tabla de instrucciones
+          a cual corresponde, si no existe, salta una excepcion
+          añade los ciclos de instruccion, ejecuta la instruccion
+          si es un opcode CB entonces busca en la tabla de instrucciones CB
+          para los ciclos        
+        */
+        this.current_opcode = this.bus.read(this.registers.pc);
+
+        if(this.instructions[this.current_opcode] !== undefined){
+
+            this.cpu_cycles += this.instructions[this.current_opcode].cycles;
+            this.instructions[this.current_opcode].execute(this);
+            if(this.current_opcode === 0xCB){
+                this.cpu_cycles += this.instructions[this.current_opcode].cycles;
+            }
+
+            //this.instructionLog(this.registers.pc, this.instructions[this.current_opcode].name);
+
+            if(this.bus.dma.isTransferring){
+                this.cpu_cycles += 160;
+                this.bus.dma.isTransferring = false;
+            }
+
+            if(this.bus.requestIME){
+                this.bus.requestIME = false;
+                this.bus.IME = true;
+            }
+        }else
+        {
+            throw new Error("instruccion desconocida o invalida con el opcode " + this.current_opcode.toString(16) + " en la posicion " + this.registers.pc.toString(16));
+        }
+    }
+
+    defineInstructions(){
+        loadInstructions(this.instructions, this.bus);
+        jumpinstructions(this.instructions, this.bus);
+        incdecinstructions(this.instructions, this.bus);
+        aluinstructions(this.instructions, this.bus);
+        stackinstructions(this.instructions, this.bus);
+        otherinstructions(this.instructions);
+        bitinstuctions(this.instructions, this.bus, this.cbinstructions);
+    }
+
     interruptsCycle(){
         
         let interrupt_request = this.bus.read(IF_pointer);
@@ -124,70 +174,6 @@ export class CPU{
         else if((interrupt & 0x10) === 0x10){
             this.interrupt_Joypad();
         }
-    }
-
-    cpu_execute(){
-        /* 
-          lee el opcode en la posicion del program counter
-          y lo guarda en la variable current_opcode
-          comprueba despues en la tabla de instrucciones
-          a cual corresponde, si no existe, salta una excepcion
-          añade los ciclos de instruccion, ejecuta la instruccion
-          si es un opcode CB entonces busca en la tabla de instrucciones CB
-          para los ciclos        
-        */
-        this.current_opcode = this.bus.read(this.registers.pc);
-
-        if(this.instructions[this.current_opcode] !== undefined){
-
-            this.cpu_cycles += this.instructions[this.current_opcode].cycles;
-            this.instructions[this.current_opcode].execute(this);
-            if(this.current_opcode === 0xCB){
-                this.cpu_cycles += this.instructions[this.current_opcode].cycles;
-            }
-
-            if(this.bus.dma.isTransferring){
-                this.cpu_cycles += 160;
-                this.bus.dma.isTransferring = false;
-            }
-
-        }else
-        {
-            throw new Error("instruccion desconocida o invalida con el opcode " + this.current_opcode + " en la posicion " + this.registers.pc.toString(16));
-        }
-    }
-
-    sleep(ms){
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    breakpoint(pc, breakpoint){
-        if(this.registers.pc === pc){
-            this.pause = breakpoint;
-            console.log("breakpoint at " + pc.toString(16) + " " + this.instructions[this.current_opcode].name + " " + this.registers.sp.toString(16)
-            + " registro HL: " + this.registers.getHL().toString(16)
-            + " registro BC: " + this.registers.getBC().toString(16)
-            + " registro DE: " + this.registers.getDE().toString(16)
-            + " registro AF: " + this.registers.getAF().toString(16)
-            + " zeroflag: " + this.registers.zero
-            + " carryflag: " + this.registers.carry
-            + " halfcarryflag: " + this.registers.halfcarry
-            + " subflag: " + this.registers.subtraction
-            + " IME: " + this.bus.IME
-            + " interrupt_enable: " + this.bus.read(masterInterruptPointer).toString(16)
-            + " interrupt_request: " + this.bus.read(IF_pointer).toString(16)
-            + " mbc rom bank: " + this.bus.MBC.romBankNumber);
-        }
-    }
-
-    defineInstructions(){
-        loadInstructions(this.instructions, this.bus);
-        jumpinstructions(this.instructions, this.bus);
-        incdecinstructions(this.instructions, this.bus);
-        aluinstructions(this.instructions, this.bus);
-        stackinstructions(this.instructions, this.bus);
-        otherinstructions(this.instructions);
-        bitinstuctions(this.instructions, this.bus, this.cbinstructions);
     }
 
     interrupt_VBlank(){
@@ -226,60 +212,38 @@ export class CPU{
         this.bus.IME = false;
     }
 
-    timerCycle(){
-        //si los ciclos son 0 retornar
-        if(this.cpu_cycles === 0) return;
+    sleep(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-        this.ticks += this.cpu_cycles;
+    breakpoint(pc, breakpoint){
+        if(this.registers.pc === pc){
+            this.pause = breakpoint;
+            console.log(
+            `breakpoint at ${pc.toString(16)} 
+            opcode ${this.instructions[this.current_opcode].name} 
+            stack pointer ${this.registers.sp.toString(16)}
+            registro HL: ${this.registers.getHL().toString(16)}
+            registro BC: ${this.registers.getBC().toString(16)}
+            registro DE: ${this.registers.getDE().toString(16)}
+            registro AF: ${this.registers.getAF().toString(16)}
+            zeroflag: ${this.registers.zero}
+            carryflag: ${this.registers.carry}
+            halfcarryflag: ${this.registers.halfcarry}
+            subflag: ${this.registers.subtraction}
+            IME: ${this.bus.IME}
+            interrupt_enable: ${this.bus.read(masterInterruptPointer).toString(16)}
+            interrupt_request: ${this.bus.read(IF_pointer).toString(16)}
+            mbc rom bank: ${this.bus.mbcC.MBC.ROMbankSelect}`);
 
-        this.bus.memory[DIV_pointer] = this.ticks >> 8;
-
-        if(this.ticks >= 0xFFFF){
-            this.ticks = 0;
-        }
-
-        const TACenable = this.bus.read(TAC_pointer) & 0x4;
-        if( TACenable === 0) return;
-
-        this.ctu_TIMA = this.cyclesToUpTIMA();
-        this.timerticks += this.cpu_cycles;
-
-        if(this.timerticks >= this.ctu_TIMA){
-            if(this.bus.read(TIMA_pointer) === 0xFF){
-                this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x4;
-                this.bus.memory[TIMA_pointer] = this.bus.memory[TMA_pointer];
-            }else{
-                this.bus.memory[TIMA_pointer]++;
-            }
-            this.timerticks = 0;
+            console.log(this.log);
         }
     }
-    cyclesToUpTIMA(){
-        const TAC = this.bus.read(TAC_pointer) & 0x3;
-        switch(TAC){
-            case 0:
-                return 1024;
-            case 1:
-                return 16;
-            case 2:
-                return 64;
-            case 3:
-                return 256;
-            default:
-                return 1024;
-        }
-    }
-    teststack(){
-        this.bus.write(0x100, 0xF8);
-        this.bus.write(0x101, 0x80);
-        this.bus.write(0x102, 0x00);
-        this.bus.write(0x103, 0xC5);
-        this.bus.write(0x104, 0xF1);
-        this.bus.write(0x105, 0x00);
-        this.bus.write(0x480, 0xF1);
-        this.bus.write(0x481, 0x00);
 
-        //registers push y pop funcionan
-        //calls parecen funcionar
+    instructionLog(pc, name){   
+        this.log.push({
+            pc: pc,
+            name: name
+        });
     }
 }

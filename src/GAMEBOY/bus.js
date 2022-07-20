@@ -31,6 +31,7 @@ export class Bus{
             this.memory[i] = 0xFF;
         }
         this.IME = false;
+        this.requestIME = false;
     }
     
     setRom(rom){
@@ -65,7 +66,7 @@ export class Bus{
             return;
         }
         if(address === IF_pointer){
-            this.memory[address] = 0;
+            this.memory[address] = value;
             return;
         }
         if(address === INTERRUPT_ENABLE_REGISTER){

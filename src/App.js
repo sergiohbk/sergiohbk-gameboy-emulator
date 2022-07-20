@@ -4,7 +4,7 @@ import './UI/Gameboy-ui.css';
 import React from 'react';
 import { GAMEBOY } from './GAMEBOY/gb';
 import { Game } from './UI/Game';
-import { store, AkeyRelease, BkeyRelease, BkeyPress, AkeyPress } from './UI/Global';
+import { store } from './UI/Global';
 
 export class App extends React.Component {
 
@@ -12,6 +12,13 @@ export class App extends React.Component {
     super(props);
     this.state= {game: false, running: false};
     this.colores = [[156, 160, 76], [129, 133, 53], [48, 98, 48], [15, 56, 15]];
+
+    window.addEventListener('beforeunload', (e) => {
+      e.preventDefault();
+      if(this.state.running){
+        this.GAMEBOY.cpu.bus.mbcC.MBC.save();
+      }
+    });
   }
 
   render(){
@@ -22,12 +29,15 @@ export class App extends React.Component {
       }
       if(store.getState().turnOnGameboy){
         if(this.state.game && !this.state.running){
+          this.GAMEBOY.cpu.bus.mbcC.MBC.load();
           this.GAMEBOY.run();
           this.setState({running: true});
           console.log("game started");
         }
       }
     });
+
+    
 
     return (
       <div className="App">
@@ -36,63 +46,12 @@ export class App extends React.Component {
         </div>
         <div className="loads">
           <Game />
-          <div className='save'>
-            <span>antes de cerrar la pagina, recuerda guardar la partida </span>
-            <button onClick={this.handleSave}>Guardar partida</button>
-          </div>
-          <div className='load'>
-            <span>antes de iniciar el juego, puedes cargar tu partida guardada ↦ </span>
-            <input id='input-sav' type="file" onChange={this.handleClick} accept=".sav" />
-          </div>
         </div>
       </div>
     );
   }
 
-  handleClick = (event) => {
-    if(this.state.running) return;
-    if(!this.state.game) return;
-
-    try{
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.load(reader.result);
-    };
-    reader.readAsArrayBuffer(file);
-    }catch(e){
-      console.log(e);
-    }
-  }
-
-  handleSave = () => {
-    if(!this.state.running) return;
-    if(!this.state.game) return;
-
-    this.GAMEBOY.cpu.bus.MBC.save();
-  }
-
   componentDidMount(){
     this.GAMEBOY = new GAMEBOY(document.getElementById('screen-canvas'), this.colores);
-    document.addEventListener('keydown', (event) => {
-      if(event.key === 'j'){
-        store.dispatch(BkeyPress);
-      }
-      if(event.key === 'k'){
-        store.dispatch(AkeyPress);
-      }
-    });
-    document.addEventListener('keyup', (event) => {
-      if(event.key === 'j'){
-        store.dispatch(BkeyRelease);
-      }
-      if(event.key === 'k'){
-        store.dispatch(AkeyRelease);
-      }
-    });
-  }
-
-  load(data){
-    this.GAMEBOY.cpu.bus.MBC.load(data);
   }
 }

@@ -35,34 +35,34 @@ export class Controller{
         this.a = 'KeyJ';
         this.b = 'KeyK';
         this.start = 'Enter';
-        this.select = 'Space';
+        this.select = 'Backspace';
 
         document.addEventListener('keydown', event => this.keyEvent(event.code, true));
         document.addEventListener('keyup', event => this.keyEvent(event.code, false));
     }
 
     keyEvent(keycode, isPressed){
-        if(keycode == this.a) 
+        if(keycode === this.a) 
             this.aPressed = isPressed;
-        if(keycode == this.b) 
+        if(keycode === this.b) 
             this.bPressed = isPressed;
-        if(keycode == this.start){
+        if(keycode === this.start){
             this.startPressed = isPressed;
         }
-        if(keycode == this.select) 
+        if(keycode === this.select) 
             this.selectPressed = isPressed;
-        if(keycode == this.down)
+        if(keycode === this.down)
             this.downPressed = isPressed;
-        if(keycode == this.up) 
+        if(keycode === this.up) 
             this.upPressed = isPressed;
-        if(keycode == this.left)
+        if(keycode === this.left)
             this.leftPressed = isPressed;
-        if(keycode == this.right) 
+        if(keycode === this.right) 
             this.rightPressed = isPressed;
     }
     write(value){
-        this.button = (value & 0x10) == 0x10;
-        this.direction = (value & 0x20) == 0x20;
+        this.button = (value & 0x10) === 0x10;
+        this.direction = (value & 0x20) === 0x20;
     }
 
     read(){

@@ -10,50 +10,15 @@ export class MBC1 extends MBC {
     }
 
     selectROMBank(value) {
-        if(value === 0x00){
+        if(value === 0){
             this.ROMbankSelect = 1; 
             return;
         }
 
-        const MASK = this.getMask();
-        value &= MASK;
-        this.ROMbankSelect = value;
-    }
-    selectZERObank() {
-        if(this.cartridge.rom_size < 64){
-             this.ZERObankSelect = 0;
-             return;
-        }
-        if(this.cartridge.rom_size >= 64 && this.cartridge.rom_size < 128){
-            this.ZERObankSelect = (this.RAMbankSelect & 0x01) << 5;
-            return;
-        }
-        if(this.cartridge.rom_size >= 128){
-            this.ZERObankSelect = (this.RAMbankSelect & 0x03) << 5;
-            return;
-        }
-    }
-    selectHIGHbank() {
-        if(this.cartridge.rom_size < 64){
-            this.HIGHbankSelect = this.ROMbankSelect;
-            return;
-        }
-        else if(this.cartridge.rom_size >= 64 && this.cartridge.rom_size < 128){
-            this.HIGHbankSelect = this.ROMbankSelect | ((this.RAMbankSelect & 0x01) << 5);
-            this.HIGHbankSelect %= this.cartridge.rom_size
-            return;
-        }
-            
-        else if(this.cartridge.rom_size >= 128){
-            this.HIGHbankSelect = this.ROMbankSelect | ((this.RAMbankSelect & 0x03) << 5);
-            this.HIGHbankSelect %= this.cartridge.rom_size
-            return;
-        }   
+        this.ROMbankSelect = value & 0x1F;
     }
     selectRAMBank(value) {
-        if(this.cartridge.ram_size < 4) return;
-        value &= 0x03;
-        this.RAMbankSelect = value;
+        this.RAMbankSelect = value & 0x03;
     }
     getMask(){
         let mask = 0x00;
@@ -79,47 +44,51 @@ export class MBC1 extends MBC {
             case 128:
                 mask = 0x1F;
                 break;
+            default:
+                mask = 0x00;
         }
         return mask;
     }
     selectMode(value) {
-        value &= 0x01;
-        this.mode = value;
+        this.mode = value & 0x01;
     }
     ReadROM0(address) {
-        switch(this.mode){
-            case 0:
-                return this.cartridge.rom[address];
-            case 1:
-                this.selectZERObank();
-                return this.cartridge.rom[this.ZERObankSelect * 0x4000 + address];      
+        if (this.mode === 1){
+            this.ZERObankSelect = (this.RAMbankSelect << 5) | this.ROMbankSelect;
         }
+        else{
+            this.ZERObankSelect = 0;
+        }
+
+        return this.cartridge.rom[this.ZERObankSelect * 0x4000 + address];
     }
     ReadROM1(address) {
-        this.selectHIGHbank();
+        this.HIGHbankSelect = (this.RAMbankSelect << 5) | this.ROMbankSelect;
         return this.cartridge.rom[this.HIGHbankSelect * 0x4000 + (address - 0x4000)];
     }
     WriteRAM(value, address) {
-        if(!this.externalRAM) return;
-        switch(this.mode){
-            case 0:
-                this.RAMbanks[0][address - 0xA000] = value;
-                break;
-            case 1:
-                this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
-                break;
+        if(this.RAMbanks.length === 0){
+            console.warn("No RAM banks found, game trying to write to RAM");
+            return;
         }
+
+        if(!this.externalRAM) return;
+
+        this.RAMbankSelect = this.mode === 1 ? this.RAMbankSelect : 0;
+        this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
     }
     ReadRAM(address) {
-        if(!this.externalRAM) return 0xFF;
-        switch(this.mode){
-            case 0:
-                /*if(this.cartridge.ram_size < 4)
-                    return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
-                else*/
-                return this.RAMbanks[0][address - 0xA000];
-            case 1:
-                return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
+        if(this.RAMbanks.length === 0){
+            console.warn("No RAM banks found, game trying to read from RAM");
+            return;
         }
+
+        if(!this.externalRAM) return 0xFF;
+
+        if(this.mode === 0){
+            this.RAMbankSelect = 0;
+        }
+
+        return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
     }
 }

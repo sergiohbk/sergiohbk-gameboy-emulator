@@ -1,35 +1,70 @@
+import { IF_pointer } from "./interrumpts";
+
 export const TIMA_pointer = 0xFF05;
-// timer counter, se incrementa a 16384Hz
 export const TMA_pointer = 0xFF06;
-// se incrementa cuando TIMA hace overflow, el valor sobrante
 export const TAC_pointer = 0xFF07;
-// bit 0/1: input clock select
-// 00: 4.096KHz
-// 01: 262.144KHz
-// 10: 65.536KHz
-// 11: 16.384KHz
-// bit 2: timer enable
-// 0 stop
-// 1 start
-export const LCD_CONTROL_pointer = 0xFF40;
-// bit 0: BG display
-// bit 1: Sprite display
-// bit 2: Sprite size
-// 0: 8x8
-// 1: 8x16
-// bit 3: BG tile map display select
-// 0: 0x9800 - 0x9BFF
-// 1: 0x9C00 - 0x9FFF
-// bit 4: BG and window tile data select
-// 0: 0x8800 - 0x97FF
-// 1: 0x8000 - 0x8FFF
-// bit 5: window display enable
-// 0: off
-// 1: on
-// bit 6: window tile map select
-// 0: 0x9800 - 0x9BFF
-// 1: 0x9C00 - 0x9FFF
-// bit 7: display enable
-// 0: off
-// 1: on
 export const DIV_pointer = 0xFF04;
+
+export class Timer{
+    constructor(bus){
+        this.bus = bus;
+        this.ticks = 0; //Ticks del DIV por defecto, 0xABCC si hay boostrap
+        this.timerticks = 0; //Ticks del timer
+        this.ctu_TIMA = 0x1000; //ciclos para aumentar TIMA
+    }
+
+    tick(cycles){
+        //div behaviour
+        this.divTick(cycles);
+
+        //timer behaviour
+        this.timerTick(cycles);
+    }
+
+    divTick(cycles){
+        if(cycles === 0) return 0;
+
+        this.ticks += cycles;
+        
+        this.bus.memory[DIV_pointer] += (this.ticks >> 8) & 0xFF; 
+
+        this.bus.memory[DIV_pointer] &= 0xFF;
+
+        this.ticks &= 0xFF;
+    }
+
+    timerTick(cycles){
+        if((this.bus.memory[TAC_pointer] & 0x4) === 0)
+            return false;
+       
+        this.ctu_TIMA = this.cyclesToUpTIMA();
+        this.timerticks += cycles;
+
+        if(this.timerticks >= this.ctu_TIMA){
+            if(this.bus.memory[TIMA_pointer] === 0xFF){
+                this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x4;
+                this.bus.memory[TIMA_pointer] = this.bus.memory[TMA_pointer];
+            }else{
+                this.bus.memory[TIMA_pointer]++;
+            }
+
+            this.timerticks -= this.ctu_TIMA;
+        }
+    }
+
+    cyclesToUpTIMA(){
+        const TAC = this.bus.memory[TAC_pointer] & 0x3;
+        switch(TAC){
+            case 0:
+                return 1024;
+            case 1:
+                return 16;
+            case 2:
+                return 64;
+            case 3:
+                return 256;
+            default:
+                return 1024;
+        }
+    }
+}

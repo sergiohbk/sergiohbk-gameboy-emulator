@@ -5,56 +5,66 @@ export class MBC3 extends MBC {
     constructor(cartridge, bus) {
         super(cartridge, bus);
 
-        this.realtimeclock = new RealTimeClock();
+        if(cartridge.timer)
+            this.realtimeclock = new RealTimeClock();
     }
 
     enableRAM(value) {
-        value = value & 0x0F;
-        if (value == 0xA) {
+        if (value === 0x0A) {
             this.externalRAM = true;
-            this.realtimeclock.accessRTC = true;
+            if(this.cartridge.timer)
+                this.realtimeclock.accessRTC = true;
         } else {
             this.externalRAM = false;
-            this.realtimeclock.accessRTC = false;
+            if(this.cartridge.timer)
+                this.realtimeclock.accessRTC = false;
         }
     }
 
     selectROMBank(value) {
-        if(value === 0){this.ROMbankSelect = 1; return;}
+        if(value === 0){
+            this.ROMbankSelect = 1; 
+            return;
+        }
 
-        value &= 0x7F;
-        this.ROMbankSelect = value;
+        this.ROMbankSelect = value & 0x7F;
     }
     selectRAMBank(value) {
-        if(value <= 0x03){
-            this.RAMbankSelect = value;
-            this.realtimeclock.RTCselect = 0;
-            return;
-        }
-        
-        this.realtimeclock.selectRTC(value);
+        this.RAMbankSelect = value;
     }
     WriteRAM(value, address) {
-        //log que imprima el address el value y el RTCselect
+        if (!this.externalRAM)
+            return;
 
-        if(this.realtimeclock.RTCselect > 0){
-            this.realtimeclock.WriteRegister(value);
+        if(this.RAMbanks.length === 0) {
+            console.warn("MBC3: RAM banks are not initialized, game trying to write");
             return;
         }
 
-        if(!this.cartridge.externalRAM) return;
-        
-        this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
+        if(this.RAMbankSelect <= 0x03){
+            this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
+        }
+        else if (this.realtimeclock.accessRTC && this.RAMbankSelect >= 0x08 && this.RAMbankSelect <= 0x0C) {
+            this.realtimeclock.WriteRegister(value, this.RAMbankSelect);
+        }else{
+            console.warn("MBC3: Trying to write to invalid RAM bank");
+        }
     }
     ReadRAM(address) {
         if(!this.externalRAM) return 0xFF;
 
-        if(this.realtimeclock.RTCselect > 0){
-            return this.realtimeclock.ReadRegister();
+        if(this.RAMbanks.length === 0) {
+            console.warn("MBC3: RAM banks are not initialized, game trying to read");
+            return;
         }
-            
-        if(!this.cartridge.externalRAM) return 0xFF;
-        
-        return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
+
+        if(this.RAMbankSelect <= 0x03){
+            return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
+        }
+        else if (this.realtimeclock.accessRTC && this.RAMbankSelect >= 0x08 && this.RAMbankSelect <= 0x0C) {
+            return this.realtimeclock.ReadRegister(this.RAMbankSelect);
+        }else{
+            console.warn("MBC3: Trying to write to invalid RAM bank");
+        }
     }
 }

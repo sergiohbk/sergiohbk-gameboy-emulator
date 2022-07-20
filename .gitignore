@@ -10,9 +10,11 @@ Gill-Sans-Bold-Italic.otf
 /node_modules
 /.pnp
 .pnp.js
+.vscode
 
 # testing
 /coverage
+/src/Test
 
 # production
 /build

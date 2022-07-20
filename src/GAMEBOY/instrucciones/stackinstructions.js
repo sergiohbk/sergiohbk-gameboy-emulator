@@ -116,7 +116,7 @@ export function stackinstructions(instruction, bus){
         execute: function(cpu){
             if(!cpu.registers.carry)
             {   
-                let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
+                let address = (bus.read(cpu.registers.pc + 2) << 8) | (bus.read(cpu.registers.pc + 1));
                 cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
                 cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
@@ -135,7 +135,7 @@ export function stackinstructions(instruction, bus){
         execute: function(cpu){
             if(cpu.registers.zero)
             {   
-                let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
+                let address = (bus.read(cpu.registers.pc + 2) << 8) | (bus.read(cpu.registers.pc + 1));
                 cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
                 cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
@@ -154,7 +154,7 @@ export function stackinstructions(instruction, bus){
         execute: function(cpu){
             if(cpu.registers.carry)
             {   
-                let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
+                let address = (bus.read(cpu.registers.pc + 2) << 8) | (bus.read(cpu.registers.pc + 1));
                 cpu.registers.pc = cpu.registers.pc + 3 & 0xFFFF;
                 cpu.registers.stackPush16(cpu.registers.pc, bus);
                 cpu.registers.pc = address;
@@ -171,9 +171,9 @@ export function stackinstructions(instruction, bus){
         opcode: 0xCD,
         cycles: 24,
         execute: function(cpu){
-            let address = bus.read(cpu.registers.pc + 2) << 8 | (bus.read(cpu.registers.pc + 1));
+            let address = (bus.read(cpu.registers.pc + 2) << 8) | (bus.read(cpu.registers.pc + 1));
             cpu.registers.pc = (cpu.registers.pc + 3) & 0xFFFF;
-            cpu.registers.stackPush16(cpu.registers.pc,bus);
+            cpu.registers.stackPush16(cpu.registers.pc , bus);
             cpu.registers.pc = address;
         }
     };
@@ -347,7 +347,8 @@ export function stackinstructions(instruction, bus){
         cycles: 16,
         execute: function(cpu){
             cpu.registers.pc = cpu.registers.stackPop16(bus);
-            cpu.bus.IME = true;
+            cpu.bus.requestIME = true;
+            //quizas active IME directamente sin dejar una ejecucion extra, no lo se
         }
     };
 }

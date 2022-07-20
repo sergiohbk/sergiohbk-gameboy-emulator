@@ -49,7 +49,10 @@ export class MBCcontroller{
         }
 
         if(this.cartridge.MBC3){
-            this.MBC.realtimeclock.latchRTC(value);
+            if(!this.cartridge.timer)
+                console.warn("MBC3: RTC is not initialized");
+            else
+                this.MBC.realtimeclock.latchRTC(value);
         }
     }
     writeRAM(value, address){

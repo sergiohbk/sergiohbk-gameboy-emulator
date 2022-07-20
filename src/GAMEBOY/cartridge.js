@@ -215,8 +215,41 @@ export class Cartridge{
 
     getRomSize(){
         //get the rom size of banks with the rom bits
-        console.log(this.rom.length);
-        return Math.floor(this.rom.length / 16000);
+        console.log(this.rom[0x148]);
+        let romSizeByte = this.rom[0x148];
+        let romSize = 0;
+        switch(romSizeByte){
+            case 0x00:
+                romSize = 2;
+                break;
+            case 0x01:
+                romSize = 4;
+                break;
+            case 0x02:
+                romSize = 8;
+                break;
+            case 0x03:
+                romSize = 16;
+                break;
+            case 0x04:
+                romSize = 32;
+                break;
+            case 0x05:
+                romSize = 64;
+                break;
+            case 0x06:
+                romSize = 128;
+                break;
+            case 0x07:
+                romSize = 256;
+                break;
+            case 0x08:
+                romSize = 512;
+                break;
+            default:
+                break;
+        }
+        return romSize;
     }
 
     getRomData(address){

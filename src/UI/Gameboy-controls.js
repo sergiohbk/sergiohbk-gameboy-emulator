@@ -60,22 +60,6 @@ function Speakers(){
 }
 
 export function GameboyControls (){
-    store.subscribe(() => {
-        if(store.getState().BkeyPressed){
-            document.getElementsByName("B").classList.add("pressed");
-        }
-        else{
-            document.getElementsByName("B").classList.remove("pressed");
-        }
-        if(store.getState().AkeyPressed){
-            document.getElementsByName("A").classList.add("pressed");
-        }
-        else{
-            document.getElementsByName("A").classList.remove("pressed");
-        }
-    }
-    );
-
     return(
         <div className="container-controls">
             <div className="controls">

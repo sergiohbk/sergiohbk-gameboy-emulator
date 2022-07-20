@@ -12,10 +12,36 @@ export class MBC{
 
         this.inicializeRAM();
     }
+
+    save(){
+        if(!this.cartridge.battery)
+            return;
+
+        const SAVE = new Uint8Array(this.RAMbanks.length * 0x2000);
+        for(let i = 0; i < this.RAMbanks.length; i++){
+            SAVE.set(this.RAMbanks[i], i * 0x2000);
+        }
+        const JSONSAVE = JSON.stringify(SAVE);
+        localStorage.setItem(this.cartridge.title + ".sav", JSONSAVE);
+    }
+
+    load(){
+        if(!this.cartridge.battery)
+            return;
+        if(!localStorage.getItem(this.cartridge.title + ".sav"))
+            return;
+
+        const JSONSAVE = JSON.parse(localStorage.getItem(this.cartridge.title + ".sav"));
+        const SAVE = new Uint8Array(Object.values(JSONSAVE));
+
+        for(let i = 0; i < this.RAMbanks.length; i++){
+            this.RAMbanks[i] = SAVE.slice(i * 0x2000, (i + 1) * 0x2000);
+        }
+    }
     
     enableRAM(value){
         value = value & 0x0F;
-        if (value == 0xA) {
+        if (value === 0xA) {
             this.externalRAM = true;
         } else {
             this.externalRAM = false;

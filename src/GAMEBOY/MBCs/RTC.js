@@ -10,18 +10,13 @@ export class RealTimeClock{
             timerhalt: 0,
             countercarry: 0
         }
-        this.RTCselect = 0;
+
         this.accessRTC = false;
 
         this.cloneRTC = 0xFF;
         this.cloning = false;
         
         this.cycles = 0;
-    }
-
-    selectRTC(value){
-        if(value >= 0x08 && value <= 0x0C)
-            this.RTCselect = value;
     }
 
     latchRTC(value){
@@ -33,10 +28,8 @@ export class RealTimeClock{
         }
     }
 
-    WriteRegister(value){
-        if(!this.accessRTC) return;
-
-        switch(this.RTCselect){
+    WriteRegister(value, rambank){
+        switch(rambank){
             case 0x08:
                 this.clock.seconds = value;
                 if(this.cloneRTC !== 0xFF)
@@ -68,17 +61,17 @@ export class RealTimeClock{
                 }
                 break;
             default:
-                this.RTCselect = 0;
+                break;
         }
     }
 
-    ReadRegister(){
-        if(!this.accessRTC) return 0xFF;
+    ReadRegister(rambank){
+        if(this.cloneRTC === 0xFF){
+            console.warn("RTC is not latched");
+            return 0xFF; 
+        }
         
-        if(this.cloneRTC === 0xFF)
-            throw new Error("Clone RTC not set");
-        
-        switch(this.RTCselect){
+        switch(rambank){
             case 0x08:
                 return this.cloneRTC.seconds & 0x3F;
             case 0x09:
