@@ -1,8 +1,23 @@
 # Gameboy emulator by sergiohbk
 
 > for now the documentation is not created, in the future I will add the complete documentation of my emulator, and the TODO list of things that I will add in the future.
+Your can try the demo here: https://demo-sergiohbk-gameboy.netlify.app
+
+
+**controllers are**
+→ - D
+← - A
+↑ - W
+↓ - S
+
+A - J
+B - K
+Start - enter
+Select - backspace
 
 ***for now the sound is not implemented, in the future I will add the sound.***
+
+***for now the emulator is not compatible with mobile devices, I will add in the future the possibility to press the buttons to control the game.***
 
 ### compatible tested games
 
