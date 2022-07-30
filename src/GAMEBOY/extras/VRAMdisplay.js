@@ -9,7 +9,11 @@ export class VRAMdisplay{
         this.height = canvas.height;
         this.imageData = this.ctx.createImageData(this.width, this.height);
         this.imageData.data.fill(0);
-        this.update();
+        this.interval = 5000;
+        setInterval(() => {
+            console.log("drawing in VRAM");
+            this.drawSprites();
+        }, this.interval);
     }
 
     update(){
@@ -17,17 +21,26 @@ export class VRAMdisplay{
     }
 
     drawSprites(){
-        const sprites = getSpritesInOAM();
-        const spriteHeight = getSpriteHeight();
+        const sprites = getSpritesInOAM(this.gameboy.cpu.bus.memory);
+        const spriteHeight = getSpriteHeight(this.gameboy.cpu.bus.memory);
         for(let i = 0; i < sprites.length; i++){
             const spriteIndex = getSpritePixelIndexInMemory(sprites[i], spriteHeight);
-            const spritebytes = getSpriteBytes(spriteIndex);
+            const spritebytes = getSpriteBytes(this.gameboy.cpu.bus.memory, spriteHeight, spriteIndex);
             const spritePixels = getPixelsfromBytes(spritebytes);
             const sprite = getColorOfPixels(spritePixels);
-            for(let j = 0; j < sprite.length; j+=8){
-                for(let x = 0; x < 8; x++){
-                    const color = sprite[j+x];
-                    console.log(color);
+            for (let y = 0; y < spriteHeight; y++){
+                for (let x = 0; x < 8; x++){
+                    //j*8 el sprite general
+                    //this.width el tamaño del canvas
+                    //eje y es y * this.width
+                    //j*8+x el pixel en el sprite
+                    //(j*8+x)*4 + y*this.width es el pixel en el canvas
+                    const position = (i*8+x)*4 + (y*this.width)*4;
+                    const color = sprite[x + y*8];
+                    this.imageData.data[position] = color.r;
+                    this.imageData.data[position+1] = color.g;
+                    this.imageData.data[position+2] = color.b;
+                    this.imageData.data[position+3] = 255;
                 }
             }
         }

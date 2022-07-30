@@ -5,6 +5,7 @@ import React from 'react';
 import { GAMEBOY } from './GAMEBOY/gb';
 import { Game } from './UI/Game';
 import { store } from './UI/Global';
+import { VRAMdisplay } from './GAMEBOY/extras/VRAMdisplay';
 
 export class App extends React.Component {
 
@@ -31,6 +32,7 @@ export class App extends React.Component {
         if(this.state.game && !this.state.running){
           this.GAMEBOY.cpu.bus.mbcC.MBC.load();
           this.GAMEBOY.run();
+          this.VRAMdisplay = new VRAMdisplay(document.getElementById('VRAM-canvas'), this.GAMEBOY);
           this.setState({running: true});
           console.log("game started");
         }
@@ -46,6 +48,9 @@ export class App extends React.Component {
         </div>
         <div className="loads">
           <Game />
+        </div>
+        <div className="VRAM">
+          <canvas id="VRAM-canvas" width="64" height="64"></canvas>
         </div>
       </div>
     );
