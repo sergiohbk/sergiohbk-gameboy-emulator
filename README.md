@@ -26,12 +26,12 @@
 - Star Wars (E)
 
 ### with some error (usually graphical)
-- ![#FFFF00] super mario land
-- ![#FFFF00] Metroid II - Return of Samus (World)
+- super mario land
+- Metroid II - Return of Samus (World)
 
 ### with errors (not playable)
-- ![FF0000] Street Fighter II (UE)
-- ![FF0000] captain tsubasa (J)
-- ![FF0000] Super Mario Land 2 (UE)
-- ![FF0000] Wario Land - Super Mario Land 3 (World)
-- ![FF0000] Pokemon Oro (E)
+- Street Fighter II (UE)
+- captain tsubasa (J)
+- Super Mario Land 2 (UE)
+- Wario Land - Super Mario Land 3 (World)
+- Pokemon Oro (E)
