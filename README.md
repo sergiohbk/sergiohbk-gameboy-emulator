@@ -5,15 +5,15 @@ Your can try the demo here: https://demo-sergiohbk-gameboy.netlify.app
 
 
 **controllers are**
-→ - D
-← - A
-↑ - W
-↓ - S
+- → - D
+- ← - A
+- ↑ - W
+- ↓ - S
 
-A - J
-B - K
-Start - enter
-Select - backspace
+- A - J
+- B - K
+- Start - enter
+- Select - backspace
 
 ***for now the sound is not implemented, in the future I will add the sound.***
 
