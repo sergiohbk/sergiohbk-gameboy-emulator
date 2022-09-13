@@ -6,6 +6,7 @@ import {
   cyclesScanline,
   cyclesScanlineOAM,
   cyclesScanlineVRAM,
+  cyclesVblank,
   MaxOAMsprites,
   SCREEN_HEIGHT,
   SCREEN_WIDTH,
@@ -16,7 +17,16 @@ export class GPU {
   //(VRAM - Video RAM TILE DATA) at $8000-97FF
   //(VRAM - Video RAM MAP DATA) at $9800-9BFF
   //(VRAM - Video RAM ATTRIBUTE DATA) at $9C00-9FFF
-  constructor(bus, canvas, colores = [[255,255,255], [192,192,192], [96,96,96], [0,0,0]]) {
+  constructor(
+    bus,
+    canvas,
+    colores = [
+      [255, 255, 255],
+      [192, 192, 192],
+      [96, 96, 96],
+      [0, 0, 0],
+    ]
+  ) {
     this.bus = bus;
     this.createDisplay(canvas);
     this.tileset = [];
@@ -36,6 +46,7 @@ export class GPU {
     this.windowLinesDraws = 0;
     this.lastSprite = undefined;
     this.colores = colores;
+    this.dummyly = false;
   }
   getLCDCmode() {
     let mode = this.bus.read(0xff41) & 0x3;
@@ -72,9 +83,9 @@ export class GPU {
         break;
     }
   }
-  
+
   createDisplay(canvas) {
-    if(canvas === undefined) return;
+    if (canvas === undefined) return;
 
     this.screen = canvas;
     this.ctx = this.screen.getContext("2d");
@@ -86,74 +97,78 @@ export class GPU {
 
   tick(cycles) {
     this.cyclesCounter += cycles;
+
     switch (this.getLCDCmode()) {
-      case "HBlank":
-        if (this.cyclesCounter >= cyclesHBlank) {
-          this.cyclesCounter %= cyclesHBlank;
-          this.bufferringScanLine();
-
-          this.bus.memory[0xff44]++;
-          
-          let ly = this.bus.read(0xff44);
-          if (ly === SCREEN_HEIGHT) {
-            this.setLCDCmode("VBlank");
-            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
-          } else {
-            this.setLCDCmode("OAM");
-          }
-        }
-        break;
-      case "VBlank":
-        if (this.cyclesCounter >= cyclesScanline) {
-          if(this.bus.memory[0xff44] === 153){
-            //comportamiento extraño de la scanline 153, convierte a 0 ly pero sin salir de vblank
-            //hacer en el futuro
-          }
-
-          let lycompare = this.lyCompare();
-        
-          let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
-          if (lycompare && lycInterrupt) {
-            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
-          }
-          
-          this.bus.memory[0xff44]++;
-          this.cyclesCounter %= cyclesScanline;
-          let ly = this.bus.memory[0xff44];
-
-          if (ly === completeFrameScanlines) {
-            this.bus.memory[0xff44] = 0;
-            this.windowLinesDraws = 0;
-            this.setLCDCmode("OAM");
-          }
-        }
-        break;
       case "OAM":
         if (this.cyclesCounter >= cyclesScanlineOAM) {
-          this.cyclesCounter %= cyclesScanlineOAM;
+          const ly = this.bus.read(0xff44);
+          if (ly === 153) {
+            this.bus.memory[0xff44] = 0;
+            this.windowLinesDraws = 0;
+            this.cyclesCounter %= cyclesScanlineOAM;
+          } else {
+            this.bus.memory[0xff44]++;
+          }
+
           this.setLCDCmode("VRAM");
+          const lycom = this.lyCompare();
+          this.lyInterrupt(lycom);
         }
         break;
       case "VRAM":
         if (this.cyclesCounter >= cyclesScanlineVRAM) {
           this.cyclesCounter %= cyclesScanlineVRAM;
-
-          let hBlankInterrupt = (this.bus.read(0xff41) & 0x8) === 0x8;
-          if (hBlankInterrupt) {
-            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
-          }
-          let lycompare = this.lyCompare();
-          let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
-          if (lycompare && lycInterrupt) {
-            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
-          }
-          //this.bus.dma.transfer();
           this.setLCDCmode("HBlank");
+        }
+        break;
+      case "HBlank":
+        if (this.cyclesCounter >= cyclesHBlank) {
+          this.cyclesCounter %= cyclesHBlank;
+          this.bufferringScanLine();
+
+          const ly = this.bus.read(0xff44);
+          if (ly < SCREEN_HEIGHT - 1) this.setLCDCmode("OAM");
+          else this.setLCDCmode("VBlank");
+        }
+        break;
+      case "VBlank":
+        if (this.cyclesCounter >= cyclesVblank) {
+          this.cyclesCounter %= cyclesVblank;
+          this.bus.memory[0xff44]++;
+          const ly = this.bus.read(0xff44);
+          const lycom = this.lyCompare();
+          this.lyInterrupt(lycom);
+          if (ly === 144)
+            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
+          if (ly === 153) this.setLCDCmode("OAM");
         }
         break;
       default:
         break;
     }
+  }
+
+  getActualMode() {
+    let mode = this.getLCDCmode();
+    let interruptmode = 0;
+    switch (mode) {
+      case "HBlank":
+        interruptmode = 0;
+        break;
+      case "VBlank":
+        interruptmode = 1;
+        break;
+      case "OAM":
+        interruptmode = 2;
+        break;
+      case "VRAM":
+        interruptmode = 0;
+        break;
+      default:
+        interruptmode = 0;
+        break;
+    }
+    return interruptmode;
   }
   bufferringScanLine() {
     this.LCDC = this.bus.read(0xff40);
@@ -172,7 +187,7 @@ export class GPU {
     }
     this.drawtoScreen(scanline);
   }
-  
+
   loadbgline() {
     let backgroundline = [];
     const scrolledY = (this.bus.read(0xff42) + this.bus.read(0xff44)) & 0xff;
@@ -344,57 +359,75 @@ export class GPU {
     let listSprites = [];
 
     for (let i = 0; i < sprites.length; i++) {
-      if(MaxSpritesInLine === 10) break;
-      if (ly >= sprites[i].y && sprites[i].y + spriteHeight > ly && sprites[i].x >= -7 && sprites[i].x <= SCREEN_WIDTH){
+      if (MaxSpritesInLine === 10) break;
+      if (
+        ly >= sprites[i].y &&
+        sprites[i].y + spriteHeight > ly &&
+        sprites[i].x >= -7 &&
+        sprites[i].x <= SCREEN_WIDTH
+      ) {
         listSprites.push(sprites[i]);
         MaxSpritesInLine++;
       }
     }
 
-    if(listSprites.length === 0) return;
+    if (listSprites.length === 0) return;
 
-    listSprites.sort((a, b) => { return a.x - b.x }).reverse();
+    listSprites
+      .sort((a, b) => {
+        return a.x - b.x;
+      })
+      .reverse();
 
     for (let i = 0; i < listSprites.length; i++) {
-        const sprite = listSprites[i];
-        const palleteColor = this.getColourSpritePalette(sprite.palette);
-        const lastLineOfSprite = spriteHeight - 1;
+      const sprite = listSprites[i];
+      const palleteColor = this.getColourSpritePalette(sprite.palette);
+      const lastLineOfSprite = spriteHeight - 1;
 
-        let scanlineIntersectsYat = ly - sprite.y;
+      let scanlineIntersectsYat = ly - sprite.y;
 
-        if (sprite.Yflip === 0x1) {
-          scanlineIntersectsYat = lastLineOfSprite - scanlineIntersectsYat;
-        }
-
-        const tileIndex = spriteHeight === 16 ? sprite.tileIndex & 0xFE : sprite.tileIndex;
-        const bytePositionInTile = scanlineIntersectsYat * 2;
-        const tileCharBytePosition = tileIndex * 16;
-        const currentTileLineBytePosition = 0x8000 + tileCharBytePosition + bytePositionInTile;
-
-        const lowerByte = this.bus.read(currentTileLineBytePosition);
-        const upperByte = this.bus.read(currentTileLineBytePosition + 1);
-
-        for (let xTile = 0; xTile < 8; xTile++) {
-          const paletteIndex = this.getPixelInTileLine(xTile, lowerByte, upperByte, sprite.Xflip === 0x1);
-          const palette = palleteColor[paletteIndex];
-          const screenX = sprite.x + xTile;
-
-          if(screenX < 0 || screenX >= SCREEN_WIDTH) continue;
-          
-          const isBehind = sprite.bgwnPriority === 0x1 && scanline[screenX][0] !== this.colores[0][0];
-          
-          if (!isBehind) {
-            if (paletteIndex === 0) {
-              spriteline.push(-1);
-            } else {
-              spriteline.push(palette);
-            }
-          } else {
-            spriteline.push(-1);
-          }
+      if (sprite.Yflip === 0x1) {
+        scanlineIntersectsYat = lastLineOfSprite - scanlineIntersectsYat;
       }
 
-      const xPos = (sprite.x < 0) ? 0 : sprite.x;
+      const tileIndex =
+        spriteHeight === 16 ? sprite.tileIndex & 0xfe : sprite.tileIndex;
+      const bytePositionInTile = scanlineIntersectsYat * 2;
+      const tileCharBytePosition = tileIndex * 16;
+      const currentTileLineBytePosition =
+        0x8000 + tileCharBytePosition + bytePositionInTile;
+
+      const lowerByte = this.bus.read(currentTileLineBytePosition);
+      const upperByte = this.bus.read(currentTileLineBytePosition + 1);
+
+      for (let xTile = 0; xTile < 8; xTile++) {
+        const paletteIndex = this.getPixelInTileLine(
+          xTile,
+          lowerByte,
+          upperByte,
+          sprite.Xflip === 0x1
+        );
+        const palette = palleteColor[paletteIndex];
+        const screenX = sprite.x + xTile;
+
+        if (screenX < 0 || screenX >= SCREEN_WIDTH) continue;
+
+        const isBehind =
+          sprite.bgwnPriority === 0x1 &&
+          scanline[screenX][0] !== this.colores[0][0];
+
+        if (!isBehind) {
+          if (paletteIndex === 0) {
+            spriteline.push(-1);
+          } else {
+            spriteline.push(palette);
+          }
+        } else {
+          spriteline.push(-1);
+        }
+      }
+
+      const xPos = sprite.x < 0 ? 0 : sprite.x;
       this.putPixelsInScanLine(scanline, spriteline, xPos);
       spriteline = [];
     }
@@ -474,7 +507,7 @@ export class GPU {
   drawtoScreen(scanline) {
     const ly = this.bus.read(0xff44);
 
-    if(scanline == null || scanline === undefined) return;
+    if (scanline == null || scanline === undefined) return;
 
     for (let i = 0; i < SCREEN_WIDTH; i++) {
       let pixel = scanline[i];
@@ -490,7 +523,7 @@ export class GPU {
     }
   }
 
-  renderTheFrame(){
+  renderTheFrame() {
     this.ctx.putImageData(this.imageData, 0, 0);
   }
 
@@ -503,11 +536,17 @@ export class GPU {
     let lyc = this.bus.read(0xff45);
     let ly = this.bus.read(0xff44);
     if (ly === lyc) {
-        this.bus.memory[0xff41] |= 0x4;
-        return true;
+      this.bus.memory[0xff41] |= 0x4;
+      return true;
     } else {
-        this.bus.memory[0xff41] &= 0xfb;
-        return false;
+      this.bus.memory[0xff41] &= 0xfb;
+      return false;
+    }
+  }
+  lyInterrupt(lycompare) {
+    let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
+    if (lycompare && lycInterrupt) {
+      this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
     }
   }
   resetBGmapbuffer() {
