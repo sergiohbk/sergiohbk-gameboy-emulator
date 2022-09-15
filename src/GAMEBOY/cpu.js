@@ -44,7 +44,7 @@ export class CPU {
     this.interruptsCycle();
 
     if (this.registers.halted) {
-      this.cpu_cycles += 1;
+      this.cpu_cycles += 4;
       this.timer.tick(this.cpu_cycles);
       let cycles = this.cpu_cycles;
       this.cpu_cycles = 0;
@@ -124,11 +124,6 @@ export class CPU {
       if (this.bus.dma.isTransferring) {
         this.cpu_cycles += 160;
         this.bus.dma.isTransferring = false;
-      }
-
-      if (this.bus.requestIME) {
-        this.bus.requestIME = false;
-        this.bus.IME = true;
       }
     } else {
       throw new Error(

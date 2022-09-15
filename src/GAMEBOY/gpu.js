@@ -1,9 +1,8 @@
 import { IF_pointer } from "./interrumpts";
 import { Sprite } from "./sprite";
 import {
-  completeFrameScanlines,
   cyclesHBlank,
-  cyclesScanline,
+  cyclesPerFrame,
   cyclesScanlineOAM,
   cyclesScanlineVRAM,
   cyclesVblank,
@@ -47,6 +46,8 @@ export class GPU {
     this.lastSprite = undefined;
     this.colores = colores;
     this.dummyly = false;
+    this.cyclestarget = 0;
+    this.setLCDCmode("OAM");
   }
   getLCDCmode() {
     let mode = this.bus.read(0xff41) & 0x3;
@@ -97,54 +98,51 @@ export class GPU {
 
   tick(cycles) {
     this.cyclesCounter += cycles;
-
-    switch (this.getLCDCmode()) {
-      case "OAM":
-        if (this.cyclesCounter >= cyclesScanlineOAM) {
-          const ly = this.bus.read(0xff44);
+    if (this.cyclesCounter >= this.cyclestarget) {
+      let ly = this.bus.read(0xff44);
+      let lycom = false;
+      switch (this.getLCDCmode()) {
+        case "OAM":
+          ly = this.bus.read(0xff44);
           if (ly === 153) {
             this.bus.memory[0xff44] = 0;
             this.windowLinesDraws = 0;
-            this.cyclesCounter %= cyclesScanlineOAM;
+            this.cyclesCounter %= cyclesPerFrame;
+            this.cyclestarget %= cyclesPerFrame;
           } else {
             this.bus.memory[0xff44]++;
           }
-
+          this.cyclestarget += cyclesScanlineOAM;
           this.setLCDCmode("VRAM");
-          const lycom = this.lyCompare();
+          lycom = this.lyCompare();
           this.lyInterrupt(lycom);
-        }
-        break;
-      case "VRAM":
-        if (this.cyclesCounter >= cyclesScanlineVRAM) {
-          this.cyclesCounter %= cyclesScanlineVRAM;
+          break;
+        case "VRAM":
+          this.cyclestarget += cyclesScanlineVRAM;
           this.setLCDCmode("HBlank");
-        }
-        break;
-      case "HBlank":
-        if (this.cyclesCounter >= cyclesHBlank) {
-          this.cyclesCounter %= cyclesHBlank;
+          break;
+        case "HBlank":
+          this.cyclestarget += cyclesHBlank;
           this.bufferringScanLine();
 
-          const ly = this.bus.read(0xff44);
+          ly = this.bus.read(0xff44);
           if (ly < SCREEN_HEIGHT - 1) this.setLCDCmode("OAM");
           else this.setLCDCmode("VBlank");
-        }
-        break;
-      case "VBlank":
-        if (this.cyclesCounter >= cyclesVblank) {
-          this.cyclesCounter %= cyclesVblank;
+          break;
+        case "VBlank":
+          this.cyclestarget += cyclesVblank;
           this.bus.memory[0xff44]++;
-          const ly = this.bus.read(0xff44);
-          const lycom = this.lyCompare();
+
+          ly = this.bus.read(0xff44);
+          lycom = this.lyCompare();
           this.lyInterrupt(lycom);
           if (ly === 144)
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
           if (ly === 153) this.setLCDCmode("OAM");
-        }
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
+      }
     }
   }
 
