@@ -1,3 +1,5 @@
+import { assertions } from "../extras/testing";
+
 export class MBC{
 
     constructor(cartridge, bus){
@@ -69,6 +71,8 @@ export class MBC{
         this.RAMbanks[this.RAMbankSelect][address - 0xA000] = value;
     }
     ReadRAM(address){
+        assertions([address])
+
         if(!this.externalRAM) return 0xFF;
         
         return this.RAMbanks[this.RAMbankSelect][address - 0xA000];
@@ -79,5 +83,6 @@ export class MBC{
     selectRAMBank(){
         //do nothing
     }
+
 }
 

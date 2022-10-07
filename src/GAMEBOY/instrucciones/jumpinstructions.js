@@ -46,6 +46,7 @@ export function jumpinstructions(instruction, bus){
                 cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
+                cpu.registers.pc &= 0xFFFF;
             }
         }
     }
@@ -78,6 +79,7 @@ export function jumpinstructions(instruction, bus){
                 cpu.cpu_cycles += 4;
             }else{
                 cpu.registers.pc += 3;
+                cpu.registers.pc &= 0xFFFF;
             }
         }
     }

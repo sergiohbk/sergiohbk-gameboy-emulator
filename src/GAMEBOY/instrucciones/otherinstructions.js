@@ -49,7 +49,8 @@ export function otherinstructions(instruction){
         cycles: 4,
         execute: function(cpu){
             //handle stops
-            cpu.registers.pc += 1;
+            console.log("entró en stop")
+            cpu.registers.pc += 2;
         }
     };
     //RLA

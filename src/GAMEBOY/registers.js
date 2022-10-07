@@ -58,9 +58,9 @@ export class Registers{
         this.a = (value >> 8); //guardamos los 8 bits mas significativos
         let val = value & 0x00FF; //guardamos los 8 bits menos significativos
         this.zero = (val > 0x7F); //guardamos el bit 7
-        this.subtraction = ((val & 0x40) == 0x40); //guardamos el bit 6
-        this.halfcarry = ((val & 0x20) == 0x20); //guardamos el bit 5
-        this.carry = ((val & 0x10) == 0x10); //guardamos el bit 4
+        this.subtraction = ((val & 0x40) === 0x40); //guardamos el bit 6
+        this.halfcarry = ((val & 0x20) === 0x20); //guardamos el bit 5
+        this.carry = ((val & 0x10) === 0x10); //guardamos el bit 4
     }
     getDE(){
         return ((this.d << 8) | this.e); //retornamos los registros como una variable de 16 bits

@@ -1,3 +1,4 @@
+import { assertions } from "../extras/testing";
 import { MBC } from "./MBC";
 import { RealTimeClock } from "./RTC";
 
@@ -9,6 +10,7 @@ export class MBC3 extends MBC {
   }
 
   enableRAM(value) {
+    assertions([value])
     if ((value & 0xf) === 0xa) {
       this.externalRAM = true;
       if (this.cartridge.timer) this.realtimeclock.accessRTC = true;
@@ -19,6 +21,7 @@ export class MBC3 extends MBC {
   }
 
   selectROMBank(value) {
+    assertions([value])
     if (value === 0) {
       this.ROMbankSelect = 1;
       return;
@@ -27,17 +30,22 @@ export class MBC3 extends MBC {
     this.ROMbankSelect = value & 0x7f;
   }
   selectRAMBank(value) {
+    assertions([value])
     this.RAMbankSelect = value;
   }
   WriteRAM(value, address) {
-    if (!this.externalRAM) return;
-
-    if (this.RAMbanks.length === 0) {
-      console.warn("MBC3: RAM banks are not initialized, game trying to write");
-      return;
-    }
+    assertions([address, value])
 
     if (this.RAMbankSelect <= 0x03) {
+      if (!this.externalRAM) return;
+
+      if (this.RAMbanks.length === 0) {
+        console.warn(
+          "MBC3: RAM banks are not initialized, game trying to write"
+        );
+        return;
+      }
+
       this.RAMbanks[this.RAMbankSelect][address - 0xa000] = value;
     } else if (
       this.realtimeclock.accessRTC &&
@@ -46,16 +54,13 @@ export class MBC3 extends MBC {
     ) {
       this.realtimeclock.WriteRegister(value, this.RAMbankSelect);
     } else {
-      console.warn("MBC3: Trying to write to invalid RAM bank");
+      console.warn(
+        "MBC3: Trying to write to invalid RAM bank" + this.RAMbankSelect
+      );
     }
   }
   ReadRAM(address) {
-    if (!this.externalRAM) return 0xff;
-
-    if (this.RAMbanks.length === 0) {
-      console.warn("MBC3: RAM banks are not initialized, game trying to read");
-      return;
-    }
+    assertions([address])
 
     if (
       this.realtimeclock.accessRTC &&
@@ -64,9 +69,16 @@ export class MBC3 extends MBC {
     ) {
       return this.realtimeclock.ReadRegister(this.RAMbankSelect);
     } else {
-      return this.RAMbanks[this.RAMbankSelect % this.cartridge.ram_size][
-        address - 0xa000
-      ];
+      if (!this.externalRAM) return 0xff;
+
+      if (this.RAMbanks.length === 0) {
+        console.warn(
+          "MBC3: RAM banks are not initialized, game trying to read"
+        );
+        return;
+      }
+
+      return this.RAMbanks[this.RAMbankSelect][address - 0xa000];
     }
   }
 }

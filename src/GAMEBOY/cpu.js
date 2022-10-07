@@ -13,6 +13,7 @@ import {
   masterInterruptPointer,
 } from "./interrumpts";
 import { Timer } from "./timers";
+import { assertionOPCODE } from "./extras/testing";
 
 export class CPU {
   constructor() {
@@ -59,9 +60,6 @@ export class CPU {
 
   inicialiceMemory() {
     this.timer.ticks = 0xabcc;
-    this.bus.memory[0xff04] = 0xab;
-    this.bus.memory[0xff05] = 0x00;
-    this.bus.memory[0xff06] = 0x00;
     this.bus.memory[0xff07] = 0xf8;
     this.bus.memory[0xff0f] = 0xe1;
     this.bus.memory[0xff10] = 0x80;
@@ -83,7 +81,7 @@ export class CPU {
     this.bus.memory[0xff25] = 0xf3;
     this.bus.memory[0xff26] = 0xf1;
     this.bus.memory[0xff40] = 0x91;
-    this.bus.memory[0xff41] = 0x85;
+    this.bus.memory[0xff41] = 0x80;
     this.bus.memory[0xff42] = 0x00;
     this.bus.memory[0xff43] = 0x00;
     this.bus.memory[0xff45] = 0x00;
@@ -111,7 +109,7 @@ export class CPU {
           para los ciclos        
         */
     this.current_opcode = this.bus.read(this.registers.pc);
-
+    assertionOPCODE(this.current_opcode)
     if (this.instructions[this.current_opcode] !== undefined) {
       this.cpu_cycles += this.instructions[this.current_opcode].cycles;
       this.instructions[this.current_opcode].execute(this);
@@ -122,7 +120,7 @@ export class CPU {
       //this.instructionLog(this.registers.pc, this.instructions[this.current_opcode].name);
 
       if (this.bus.dma.isTransferring) {
-        this.cpu_cycles += 160;
+        this.cpu_cycles += 160 * 4 + 4;
         this.bus.dma.isTransferring = false;
       }
     } else {

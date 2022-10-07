@@ -34,6 +34,7 @@ export class Bus {
       this.memory[i] = 0xff;
     }
     this.IME = false;
+    this.resetTimer = false;
   }
 
   setRom(rom) {
@@ -62,8 +63,14 @@ export class Bus {
       this.mbcC.writeRAM(value, address);
       return;
     }
+    if (address >= 0xe000 && address < 0xfe00) {
+      console.warn("Warning: writing to echo ram");
+      this.memory[address - 0x2000] = value;
+      return;
+    }
     if (address === DIV_pointer) {
       this.memory[address] = 0;
+      this.resetTimer = true;
       return;
     }
     if (address === IF_pointer) {
@@ -79,8 +86,8 @@ export class Bus {
       return;
     }
     if (address === this.dma.DMA_pointer) {
-      this.dma.transfer();
       this.memory[address] = value;
+      this.dma.transfer();
       return;
     }
     if (address >= 0x8000 && address <= 0xffff) {
@@ -109,6 +116,10 @@ export class Bus {
     }
     if (address === 0xff00) {
       return (this.memory[address] = this.controller.read());
+    }
+    if (address >= 0xe000 && address < 0xfe00) {
+      console.warn("Warning: reading from echo ram");
+      return this.memory[address - 0x2000];
     }
     if (address >= 0x8000 && address <= 0xffff) {
       return this.memory[address];

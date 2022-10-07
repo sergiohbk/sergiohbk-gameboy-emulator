@@ -39,12 +39,12 @@ export class GAMEBOY {
     requestAnimationFrame((time) => this.runFrame(time));
   }
 
-  runFrame(time) { 
+  runFrame(time) {
     if (!this.running) return;
     this.now = time;
     this.elapsed = this.now - this.then;
 
-    if (this.elapsed > this.interval){
+    if (this.elapsed > this.interval) {
       this.then = this.now - (this.elapsed % this.interval);
 
       while (this.cycles < 70224) {
@@ -53,7 +53,7 @@ export class GAMEBOY {
         this.cycles += cyclesFrame;
       }
 
-      if(this.cpu.bus.cartridge.timer)
+      if (this.cpu.bus.cartridge.timer)
         this.cpu.bus.mbcC.MBC.realtimeclock.tick(this.cycles);
 
       this.gpu.renderTheFrame();

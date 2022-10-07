@@ -83,6 +83,7 @@ export class GPU {
         this.bus.write(0xff41, (lastLCDCstatus & 0xfc) | 0x2);
         break;
     }
+    this.statInterruptRequesed();
   }
 
   createDisplay(canvas) {
@@ -98,9 +99,9 @@ export class GPU {
 
   tick(cycles) {
     this.cyclesCounter += cycles;
+    this.lycompare();
     if (this.cyclesCounter >= this.cyclestarget) {
       let ly = this.bus.read(0xff44);
-      let lycom = false;
       switch (this.getLCDCmode()) {
         case "OAM":
           ly = this.bus.read(0xff44);
@@ -113,9 +114,8 @@ export class GPU {
             this.bus.memory[0xff44]++;
           }
           this.cyclestarget += cyclesScanlineOAM;
+          this.statInterrupt();
           this.setLCDCmode("VRAM");
-          lycom = this.lyCompare();
-          this.lyInterrupt(lycom);
           break;
         case "VRAM":
           this.cyclestarget += cyclesScanlineVRAM;
@@ -134,8 +134,7 @@ export class GPU {
           this.bus.memory[0xff44]++;
 
           ly = this.bus.read(0xff44);
-          lycom = this.lyCompare();
-          this.lyInterrupt(lycom);
+          this.statInterrupt();
           if (ly === 144)
             this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
           if (ly === 153) this.setLCDCmode("OAM");
@@ -160,7 +159,7 @@ export class GPU {
         interruptmode = 2;
         break;
       case "VRAM":
-        interruptmode = 0;
+        interruptmode = 3;
         break;
       default:
         interruptmode = 0;
@@ -530,21 +529,28 @@ export class GPU {
       (((tileHigh >> (7 - xpos)) & 1) << 1) | ((tileLow >> (7 - xpos)) & 1);
     return this.getPixelColor(pixel);
   }
-  lyCompare() {
-    let lyc = this.bus.read(0xff45);
+  lycompare() {
     let ly = this.bus.read(0xff44);
-    if (ly === lyc) {
-      this.bus.memory[0xff41] |= 0x4;
-      return true;
-    } else {
-      this.bus.memory[0xff41] &= 0xfb;
-      return false;
-    }
+    let lyc = this.bus.read(0xff45);
+    if (ly === lyc) this.bus.memory[0xff41] |= 0x4;
+    else this.bus.memory[0xff41] &= 0xfb;
   }
-  lyInterrupt(lycompare) {
-    let lycInterrupt = (this.bus.read(0xff41) & 0x40) === 0x40;
-    if (lycompare && lycInterrupt) {
-      this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x2;
+
+  statInterrupt() {
+    this.lycompare();
+    if (this.bus.memory[0xff41] & 0x40 && this.bus.memory[0xff41] & 0x4)
+      this.bus.memory[IF_pointer] |= 0x2;
+  }
+
+  statInterruptRequesed() {
+    const mode = this.getLCDCmode();
+    if (mode !== "VRAM") {
+      if (mode === "HBLANK" && this.bus.read(0xff41) & 0x8)
+        this.bus.memory[IF_pointer] |= 0x2;
+      if (mode === "VBLANK" && this.bus.read(0xff41) & 0x10)
+        this.bus.memory[IF_pointer] |= 0x2;
+      if (mode === "OAM" && this.bus.read(0xff41) & 0x20)
+        this.bus.memory[IF_pointer] |= 0x2;
     }
   }
   resetBGmapbuffer() {
