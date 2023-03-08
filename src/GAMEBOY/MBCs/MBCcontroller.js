@@ -30,7 +30,7 @@ export class MBCcontroller {
   }
   //escritura
   enabelingRAM(value) {
-    this.MBC.enableRAM(value);
+    if (this.cartridge.ram_size > 0) this.MBC.enableRAM(value);
   }
   romBanking(value, address) {
     this.MBC.selectROMBank(value, address);
@@ -50,5 +50,26 @@ export class MBCcontroller {
   }
   writeRAM(value, address) {
     this.MBC.WriteRAM(value, address);
+  }
+
+  getMBCState() {
+    const state = {
+      MBC: this.MBC,
+      cartridge: this.cartridge,
+      rombankselected: this.MBC.ROMbankSelect,
+      rambankselected: this.MBC.RAMbankSelect,
+      rambankenabled: this.MBC.RAMenabled,
+      mode: this.MBC.mode,
+      rom0mbc1:
+        this.MBC.ZERObankSelect != null ? this.MBC.ZERObankSelect : null,
+      rom1mbc1:
+        this.MBC.HIGHbankSelect != null ? this.MBC.HIGHbankSelect : null,
+    };
+    return state;
+  }
+  getRTCState() {
+    if (this.cartridge.MBC3) {
+      return this.MBC.realtimeclock.getRTCState();
+    }
   }
 }

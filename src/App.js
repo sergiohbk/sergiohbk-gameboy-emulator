@@ -42,8 +42,8 @@ export class App extends React.Component {
 
           if (this.state.debug)
             setInterval(() => {
-              this.Vramdisplay.drawSprites();
-            }, 5000);
+              this.Vramdisplay.drawVram();
+            }, 1000);
         }
       }
     });
@@ -59,7 +59,7 @@ export class App extends React.Component {
         </div>
         <div>
           {this.state.debug && (
-            <canvas id="vram" width={100} height={100}></canvas>
+            <canvas id="vram" width={200} height={200}></canvas>
           )}
         </div>
       </div>

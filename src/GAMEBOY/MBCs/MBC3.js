@@ -10,18 +10,18 @@ export class MBC3 extends MBC {
   }
 
   enableRAM(value) {
-    assertions([value])
+    assertions([value]);
     if ((value & 0xf) === 0xa) {
       this.externalRAM = true;
       if (this.cartridge.timer) this.realtimeclock.accessRTC = true;
-    } else {
+    } else if (value === 0x00) {
       this.externalRAM = false;
       if (this.cartridge.timer) this.realtimeclock.accessRTC = false;
     }
   }
 
   selectROMBank(value) {
-    assertions([value])
+    assertions([value]);
     if (value === 0) {
       this.ROMbankSelect = 1;
       return;
@@ -30,11 +30,11 @@ export class MBC3 extends MBC {
     this.ROMbankSelect = value & 0x7f;
   }
   selectRAMBank(value) {
-    assertions([value])
+    assertions([value]);
     this.RAMbankSelect = value;
   }
   WriteRAM(value, address) {
-    assertions([address, value])
+    assertions([address, value]);
 
     if (this.RAMbankSelect <= 0x03) {
       if (!this.externalRAM) return;
@@ -60,14 +60,12 @@ export class MBC3 extends MBC {
     }
   }
   ReadRAM(address) {
-    assertions([address])
+    assertions([address]);
 
-    if (
-      this.realtimeclock.accessRTC &&
-      this.RAMbankSelect >= 0x08 &&
-      this.RAMbankSelect <= 0x0c
-    ) {
-      return this.realtimeclock.ReadRegister(this.RAMbankSelect);
+    if (this.RAMbankSelect >= 0x08 && this.RAMbankSelect <= 0x0c) {
+      if (this.realtimeclock.accessRTC)
+        return this.realtimeclock.ReadRegister(this.RAMbankSelect);
+      else return 0xff;
     } else {
       if (!this.externalRAM) return 0xff;
 

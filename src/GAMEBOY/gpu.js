@@ -136,7 +136,8 @@ export class GPU {
           ly = this.bus.read(0xff44);
           this.statInterrupt();
           if (ly === 144)
-            this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
+            if (this.bus.memory[0xff40] & 0x80)
+              this.bus.memory[IF_pointer] = this.bus.memory[IF_pointer] | 0x1;
           if (ly === 153) this.setLCDCmode("OAM");
           break;
         default:
@@ -538,6 +539,7 @@ export class GPU {
 
   statInterrupt() {
     this.lycompare();
+    if (!this.bus.memory[0xff40] & 0x80) return;  
     if (this.bus.memory[0xff41] & 0x40 && this.bus.memory[0xff41] & 0x4)
       this.bus.memory[IF_pointer] |= 0x2;
   }

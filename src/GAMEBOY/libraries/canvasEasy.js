@@ -86,6 +86,24 @@ export class canvasEasy {
     this.setSprite(sprite, length, width, x, y);
   }
 
+  setNextTile(sprite, length, width, x = 0, y = 0) {
+    if (this.drawedPosition.length === 0) {
+      this.setSprite(sprite, length, width, x, y);
+      return;
+    }
+    let lastPosition = this.drawedPosition[this.drawedPosition.length - 1];
+    if (lastPosition) {
+      if (lastPosition.x + lastPosition.width + width > this.width) {
+        x = 0;
+        y = lastPosition.y + lastPosition.length;
+      } else {
+        x = lastPosition.x + lastPosition.width;
+        y = lastPosition.y;
+      }
+    }
+    this.setSprite(sprite, length, width, x, y);
+  }
+
   isDrawed(x, y, length, width) {
     return this.drawedPosition.some(
       //test if the position is in the array or in between the position

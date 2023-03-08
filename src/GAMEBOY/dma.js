@@ -1,4 +1,3 @@
-import { assertionDMA } from "./extras/testing";
 import { OAMstart } from "./variables/GPUConstants";
 
 export class DMA {

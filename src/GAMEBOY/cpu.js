@@ -46,8 +46,8 @@ export class CPU {
 
     if (this.registers.halted) {
       this.cpu_cycles += 4;
-      this.timer.tick(this.cpu_cycles);
-      let cycles = this.cpu_cycles;
+      //this.timer.tick(this.cpu_cycles);
+      const cycles = this.cpu_cycles;
       this.cpu_cycles = 0;
       return cycles;
     }
@@ -109,7 +109,7 @@ export class CPU {
           para los ciclos        
         */
     this.current_opcode = this.bus.read(this.registers.pc);
-    assertionOPCODE(this.current_opcode)
+    assertionOPCODE(this.current_opcode);
     if (this.instructions[this.current_opcode] !== undefined) {
       this.cpu_cycles += this.instructions[this.current_opcode].cycles;
       this.instructions[this.current_opcode].execute(this);
@@ -120,7 +120,7 @@ export class CPU {
       //this.instructionLog(this.registers.pc, this.instructions[this.current_opcode].name);
 
       if (this.bus.dma.isTransferring) {
-        this.cpu_cycles += 160 * 4 + 4;
+        this.cpu_cycles += 160;
         this.bus.dma.isTransferring = false;
       }
     } else {
@@ -149,7 +149,6 @@ export class CPU {
 
     if (interrupt > 0) {
       this.registers.halted = false;
-      this.cpu_cycles += 4;
     } else {
       return;
     }

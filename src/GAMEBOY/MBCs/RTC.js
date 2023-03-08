@@ -121,4 +121,15 @@ export class RealTimeClock {
 
     this.cycles %= cyclesPerSecond;
   }
+
+  getRTCState() {
+    const state = {
+      clock: this.clock,
+      accessRTC: this.accessRTC,
+      cloneRTC: this.cloneRTC,
+      cloning: this.cloning,
+      cycles: this.cycles,
+    };
+    return state;
+  }
 }

@@ -10,12 +10,11 @@ export class MBC1 extends MBC {
   }
 
   selectROMBank(value) {
-    if (value === 0) {
-      this.ROMbankSelect = 1;
-      return;
-    }
-
     this.ROMbankSelect = value & 0x1f;
+
+    if (this.ROMbankSelect === 0) {
+      this.ROMbankSelect = 1;
+    }
   }
   selectRAMBank(value) {
     this.RAMbankSelect = value & 0x03;
@@ -54,8 +53,7 @@ export class MBC1 extends MBC {
   }
   ReadROM0(address) {
     if (this.mode === 1) {
-      this.ZERObankSelect = this.RAMbankSelect << 5;
-      console.log("changing the zero bank to " + this.ZERObankSelect);
+      this.ZERObankSelect = (this.RAMbankSelect << 5) % this.cartridge.rom_size;
     } else {
       this.ZERObankSelect = 0;
     }
@@ -63,7 +61,10 @@ export class MBC1 extends MBC {
     return this.cartridge.rom[this.ZERObankSelect * 0x4000 + address];
   }
   ReadROM1(address) {
-    this.HIGHbankSelect = (this.RAMbankSelect << 5) | this.ROMbankSelect;
+    this.HIGHbankSelect =
+      ((this.RAMbankSelect << 5) % this.cartridge.rom_size |
+        this.ROMbankSelect) %
+      this.cartridge.rom_size;
     return this.cartridge.rom[
       this.HIGHbankSelect * 0x4000 + (address - 0x4000)
     ];

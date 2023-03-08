@@ -32,6 +32,24 @@ export class VRAMdisplay {
     }
     this.canvasez.update();
   }
+
+  drawVram() {
+    for (let i = 0x8000; i < 0x9800; i += 16) {
+      const tilebytes = getTileBytes(this.memory, i);
+      const tilePixels = getPixelsfromBytes(tilebytes);
+      const tile = getColorOfPixels(tilePixels);
+      this.canvasez.setNextTile(tile, 8, 8, 0, 0);
+    }
+    this.canvasez.update();
+  }
+}
+
+export function getTileBytes(memory, tileIndex) {
+  const tilebytes = [];
+  for (let i = 0; i < 16; i++) {
+    tilebytes.push(memory[tileIndex + i]);
+  }
+  return tilebytes;
 }
 
 /**
