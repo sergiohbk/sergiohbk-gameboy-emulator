@@ -11,7 +11,7 @@ import { VRAMdisplay } from "./GAMEBOY/extras/VRAMdisplay";
 export class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { game: false, running: false, debug: true };
+    this.state = { game: false, running: false, debug: false };
     this.colores = [
       [156, 160, 76],
       [129, 133, 53],
