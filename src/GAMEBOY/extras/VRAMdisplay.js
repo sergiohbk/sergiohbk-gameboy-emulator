@@ -1,38 +1,55 @@
 import { OAMend, OAMstart } from "../variables/GPUConstants";
+import { canvasEasy } from "../libraries/canvasEasy";
 
-export class VRAMdisplay{
-    constructor(canvas, gameboy){
-        this.canvas = canvas;
-        this.gameboy = gameboy;
-        this.ctx = canvas.getContext("2d");
-        this.width = canvas.width;
-        this.height = canvas.height;
-        this.imageData = this.ctx.createImageData(this.width, this.height);
-        this.imageData.data.fill(0);
-        this.update();
-    }
+export class VRAMdisplay {
+  constructor(canvas, gameboy) {
+    this.canvas = canvas;
+    this.gameboy = gameboy;
+    this.memory = this.gameboy.cpu.bus.memory;
+    this.ctx = canvas.getContext("2d");
+    this.width = canvas.width;
+    this.height = canvas.height;
+    this.canvasez = new canvasEasy(this.canvas);
+  }
 
-    update(){
-        this.ctx.putImageData(this.imageData, 0, 0);
-    }
+  update(imageData) {
+    this.ctx.putImageData(imageData, 0, 0);
+  }
 
-    drawSprites(){
-        const sprites = getSpritesInOAM();
-        const spriteHeight = getSpriteHeight();
-        for(let i = 0; i < sprites.length; i++){
-            const spriteIndex = getSpritePixelIndexInMemory(sprites[i], spriteHeight);
-            const spritebytes = getSpriteBytes(spriteIndex);
-            const spritePixels = getPixelsfromBytes(spritebytes);
-            const sprite = getColorOfPixels(spritePixels);
-            for(let j = 0; j < sprite.length; j+=8){
-                for(let x = 0; x < 8; x++){
-                    const color = sprite[j+x];
-                    console.log(color);
-                }
-            }
-        }
-        this.update();
+  drawSprites() {
+    const sprites = getSpritesInOAM(this.memory);
+    const spriteHeight = getSpriteHeight(this.memory);
+    for (let i = 0; i < sprites.length; i++) {
+      const spriteIndex = getSpritePixelIndexInMemory(sprites[i], spriteHeight);
+      const spritebytes = getSpriteBytes(
+        this.memory,
+        spriteHeight,
+        spriteIndex
+      );
+      const spritePixels = getPixelsfromBytes(spritebytes);
+      const sprite = getColorOfPixels(spritePixels);
+      this.canvasez.setNextSprite(sprite, spriteHeight, 8, 0, 0);
     }
+    this.canvasez.update();
+  }
+
+  drawVram() {
+    for (let i = 0x8000; i < 0x9800; i += 16) {
+      const tilebytes = getTileBytes(this.memory, i);
+      const tilePixels = getPixelsfromBytes(tilebytes);
+      const tile = getColorOfPixels(tilePixels);
+      this.canvasez.setNextTile(tile, 8, 8, 0, 0);
+    }
+    this.canvasez.update();
+  }
+}
+
+export function getTileBytes(memory, tileIndex) {
+  const tilebytes = [];
+  for (let i = 0; i < 16; i++) {
+    tilebytes.push(memory[tileIndex + i]);
+  }
+  return tilebytes;
 }
 
 /**
@@ -41,18 +58,26 @@ export class VRAMdisplay{
  * @returns {object[]} 40 sprites data object in an array
  */
 export function getSpritesInOAM(memory) {
-    let spriteList = [];
-    for(let i = OAMstart; i < OAMend; i+=4){
-        spriteList.push({
-            y: memory[i],
-            x: memory[i+1],
-            tileIndex: memory[i+2],
-            attributes: memory[i+3]
-        }
-        );
+  let spriteList = [];
+  for (let i = OAMstart; i < OAMend; i += 4) {
+    //omit if all bytes are 0
+    if (
+      memory[i] === 0 &&
+      memory[i + 1] === 0 &&
+      memory[i + 2] === 0 &&
+      memory[i + 3] === 0
+    ) {
+      continue;
     }
+    spriteList.push({
+      y: memory[i],
+      x: memory[i + 1],
+      tileIndex: memory[i + 2],
+      attributes: memory[i + 3],
+    });
+  }
 
-    return spriteList;
+  return spriteList;
 }
 
 /**
@@ -62,29 +87,29 @@ export function getSpritesInOAM(memory) {
  * @returns {number} index of the sprite pixels in memory
  */
 export function getSpritePixelIndexInMemory(sprite, spriteHeight) {
-    const tileIndex = spriteHeight === 16 ? sprite.tileIndex & 0xFE : sprite.tileIndex;
-    const spriteMemoryIndex = 0x8000 | (tileIndex << 4);
-    return spriteMemoryIndex;
+  const tileIndex =
+    spriteHeight === 16 ? sprite.tileIndex & 0xfe : sprite.tileIndex;
+  const spriteMemoryIndex = 0x8000 | (tileIndex << 4);
+  return spriteMemoryIndex;
 }
 
 /**
  * get all the bytes of the sprite in VRAM
- * @param {uint8array} memory represents the memory of the gameboy 
- * @param {number} spriteHeight size of the sprite 
+ * @param {uint8array} memory represents the memory of the gameboy
+ * @param {number} spriteHeight size of the sprite
  * @param {number} spriteIndex index of the sprite in VRAM (getSpritePixelIndexInMemory)
  * @returns {number[]} array of bytes of the sprite
  */
-export function getSpriteBytes(memory, spriteHeight, spriteIndex){
-    const spriteBytes = [];
-    const spriteWidth = 8;
-    const bytesPerPixel = 2;
-    const spriteSize = spriteHeight * spriteWidth * bytesPerPixel;
+export function getSpriteBytes(memory, spriteHeight, spriteIndex) {
+  const spriteBytes = [];
+  const bytesPerPixel = 2;
+  const spriteSize = spriteHeight * bytesPerPixel;
 
-    for(let i = 0; i < spriteSize; i++){
-        spriteBytes.push(memory[spriteIndex + i]);
-    }
+  for (let i = 0; i < spriteSize; i++) {
+    spriteBytes.push(memory[spriteIndex + i]);
+  }
 
-    return spriteBytes;
+  return spriteBytes;
 }
 
 /**
@@ -92,27 +117,27 @@ export function getSpriteBytes(memory, spriteHeight, spriteIndex){
  * @param {uint8array} memory memory of the gameboy
  * @returns {number} height of sprites
  */
-export function getSpriteHeight(memory){
-    return (memory[0xFF40] & 0b1000) === 0 ? 8 : 16;
+export function getSpriteHeight(memory) {
+  return (memory[0xff40] & 0b100) === 0 ? 8 : 16;
 }
 /**
  * get the pixels of the bytes given in parameters to create the 4 types of color
- * @param {number[]} bytes bytes to get pixels 
+ * @param {number[]} bytes bytes to get pixels
  * @returns {number[]} array of pixels
  */
-export function getPixelsfromBytes(bytes){
-    let pixels = [];
-    for(let i = 0; i < bytes.length; i+=2){
-        const byte1 = bytes[i];
-        const byte2 = bytes[i+1];
-        for(let x = 0; x < 8; x++){
-            const bit1 = (byte1 >> (7 - x)) & 0b1;
-            const bit2 = (byte2 >> (7 - x)) & 0b1;
-            const pixel = bit1 | (bit2 << 1);
-            pixels.push(pixel);
-        }
+export function getPixelsfromBytes(bytes) {
+  let pixels = [];
+  for (let i = 0; i < bytes.length; i += 2) {
+    const byte1 = bytes[i];
+    const byte2 = bytes[i + 1];
+    for (let x = 0; x < 8; x++) {
+      const bit1 = (byte1 >> (7 - x)) & 0b1;
+      const bit2 = (byte2 >> (7 - x)) & 0b1;
+      const pixel = bit1 | (bit2 << 1);
+      pixels.push(pixel);
     }
-    return pixels;
+  }
+  return pixels;
 }
 
 /**
@@ -120,15 +145,15 @@ export function getPixelsfromBytes(bytes){
  * @param {number[]} pixels pixels to get the color
  * @returns {string[]} array of colors
  */
-export function getColorOfPixels(pixels){
-    let colorPixels = [];
-    for(let i = 0; i < pixels.length; i++){
-        const pixel = pixels[i];
-        const color = getColorPixel(pixel);
-        colorPixels.push(color);
-    }
+export function getColorOfPixels(pixels) {
+  let colorPixels = [];
+  for (let i = 0; i < pixels.length; i++) {
+    const pixel = pixels[i];
+    const color = getColorPixel(pixel);
+    colorPixels.push(color);
+  }
 
-    return colorPixels;
+  return colorPixels;
 }
 
 /**
@@ -136,32 +161,32 @@ export function getColorOfPixels(pixels){
  * @param {number} pixel number of the pixel to get the color 0-3
  * @returns {object} color of the pixel
  */
-export function getColorPixel(pixel){
-    let color = {
-        r: 0,
-        g: 0,
-        b: 0,
-        a: 255
-    }
-    switch(pixel){
-        case 0:
-            return color;
-        case 1:
-            color.r = 88;
-            color.g = 88;
-            color.b = 88;
-            return color;
-        case 2:
-            color.r = 140;
-            color.g = 140;
-            color.b = 140;
-            return color;
-        case 3:
-            color.r = 255;
-            color.g = 255;
-            color.b = 255;
-            return color;
-        default:
-            return color;
-    }
+export function getColorPixel(pixel) {
+  let color = {
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 255,
+  };
+  switch (pixel) {
+    case 0:
+      return color;
+    case 1:
+      color.r = 140;
+      color.g = 140;
+      color.b = 140;
+      return color;
+    case 2:
+      color.r = 80;
+      color.g = 80;
+      color.b = 80;
+      return color;
+    case 3:
+      color.r = 0;
+      color.g = 0;
+      color.b = 0;
+      return color;
+    default:
+      return color;
+  }
 }

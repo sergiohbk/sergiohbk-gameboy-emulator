@@ -1,5 +1,5 @@
 @font-face {
-  font-family: 'Nintender';
+  font-family: "Nintender";
   src: url(../public/Nintender.ttf);
 }
 @font-face {
@@ -17,7 +17,7 @@
   src: url(../public/Pretendo.ttf);
 }
 
-:root{
+:root {
   --gb-width: 380px;
   --gb-height: 625px;
   --gameboy-color: #eae3ec;
@@ -29,13 +29,13 @@
 
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif, 'Pretendo';
+  font-family: "Arial", sans-serif, "Pretendo";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #524f5e;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }

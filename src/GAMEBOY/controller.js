@@ -70,11 +70,11 @@ export class Controller{
         if(this.button){
             if(this.aPressed) 
                 byte = (byte & 0xFE);
-            if(this.bPressed) 
+            else if(this.bPressed) 
                 byte = (byte & 0xFD);
-            if(this.startPressed) 
+            else if(this.startPressed) 
                 byte = (byte & 0xF7);
-            if(this.selectPressed)
+            else if(this.selectPressed)
                 byte = (byte & 0xFB);
 
             byte = (byte & 0xDF);
@@ -82,11 +82,11 @@ export class Controller{
         if(this.direction){
             if(this.downPressed)
                 byte = (byte & 0xF7);
-            if(this.upPressed) 
+            else if(this.upPressed) 
                 byte = (byte & 0xFB);
-            if(this.leftPressed)
+            else if(this.leftPressed)
                 byte = (byte & 0xFD);
-            if(this.rightPressed) 
+            else if(this.rightPressed) 
                 byte = (byte & 0xFE);
         
             byte = (byte & 0xEF);

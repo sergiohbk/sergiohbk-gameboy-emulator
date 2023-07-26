@@ -39,29 +39,37 @@ export class GAMEBOY {
     requestAnimationFrame((time) => this.runFrame(time));
   }
 
-  runFrame(time) { 
+  runFrame(time) {
     if (!this.running) return;
     this.now = time;
     this.elapsed = this.now - this.then;
 
-    if (this.elapsed > this.interval){
+    if (this.elapsed > this.interval) {
       this.then = this.now - (this.elapsed % this.interval);
 
-      while (this.cycles < 70224) {
-        let cyclesFrame = this.cpu.tick();
-        this.gpu.tick(cyclesFrame);
-        this.cycles += cyclesFrame;
-      }
+      this.updateLogic();
 
-      if(this.cpu.bus.cartridge.timer)
-        this.cpu.bus.mbcC.MBC.realtimeclock.tick(this.cycles);
-
-      this.gpu.renderTheFrame();
+      this.rendering();
 
       this.cycles %= cyclesPerFrame;
     }
 
     requestAnimationFrame((time) => this.runFrame(time));
+  }
+
+  updateLogic() {
+    while (this.cycles < 70224) {
+      let cyclesFrame = this.cpu.tick();
+      this.gpu.tick(cyclesFrame);
+      this.cycles += cyclesFrame;
+    }
+
+    if (this.cpu.bus.cartridge.timer)
+      this.cpu.bus.mbcC.MBC.realtimeclock.tick(this.cycles);
+  }
+
+  rendering() {
+    this.gpu.renderTheFrame();
   }
 
   loadBootRom(bootstrap) {
@@ -86,5 +94,15 @@ export class GAMEBOY {
     const rombuffer = new Uint8Array(game);
     this.cpu.bus.setRom(rombuffer);
     console.log(this.cpu.bus.cartridge);
+  }
+
+  getGenerals() {
+    const generals = {
+      generalCycles: this.cycles,
+      now: this.now,
+      then: this.then,
+      interval: this.interval,
+    };
+    return generals;
   }
 }
