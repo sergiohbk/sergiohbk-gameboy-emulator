@@ -1,10 +1,9 @@
 # Gameboy emulator by sergiohbk
 
-> for now the documentation is not created, in the future I will add the complete documentation of my emulator, and the TODO list of things that I will add in the future.
-Your can try the demo here: https://demo-sergiohbk-gameboy.netlify.app
-
+[![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-vercel-blue)](https://sergiohbk-gameboy-emulator-mb41lg4qm-sergiohbk.vercel.app/)
 
 **controllers are**
+
 - → - D
 - ← - A
 - ↑ - W
@@ -15,13 +14,14 @@ Your can try the demo here: https://demo-sergiohbk-gameboy.netlify.app
 - Start - enter
 - Select - backspace
 
-***for now the sound is not implemented, in the future I will add the sound.***
+**_for now the sound is not implemented, in the future I will add the sound._**
 
-***for now the emulator is not compatible with mobile devices, I will add in the future the possibility to press the buttons to control the game.***
+**_for now the emulator is not compatible with mobile devices, I will add in the future the possibility to press the buttons to control the game._**
 
 ### compatible tested games
 
 ### 100% compatible
+
 - pokemon blue (U)
 - pokemon red (U)
 - pokemon yellow (U)
@@ -39,14 +39,27 @@ Your can try the demo here: https://demo-sergiohbk-gameboy.netlify.app
 - Killer Instinct (U)
 - kirby dream's land (U)
 - Star Wars (E)
+- Pokemon Oro (E)
 
 ### with some error (usually graphical)
+
 - super mario land
 - Metroid II - Return of Samus (World)
 
 ### with errors (not playable)
+
 - Street Fighter II (UE)
 - captain tsubasa (J)
 - Super Mario Land 2 (UE)
 - Wario Land - Super Mario Land 3 (World)
-- Pokemon Oro (E)
+
+#####FONTS
+
+the sources used in the project for academic purposes are
+
+- Nintender
+- Pretendo
+- Gill Sans
+- Nes_controller_mrshrinke
+
+**_all rights of the fonts belong to their respective creators_**
