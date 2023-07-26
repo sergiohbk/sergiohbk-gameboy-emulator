@@ -1,133 +1,129 @@
-.container-screen{
-    --height: 300px;
-    height: var(--height);
-    box-shadow: 0 4px 3px -2px #FFFE inset;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    flex-direction: column;
-    padding: 0 25px;
+.container-screen {
+  --height: 300px;
+  height: var(--height);
+  box-shadow: 0 4px 3px -2px #fffe inset;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 25px;
 }
-.model{
-    display: inline-block;
-    font-family: "Gill Sans Bold Italic";
-    color: var(--letters);
-    font-size: 22px;
-    transform: scaleY(130%);
-    margin-left: 5px;
+.model {
+  display: inline-block;
+  font-family: "Gill Sans Bold Italic";
+  color: var(--letters);
+  font-size: 22px;
+  transform: scaleY(130%);
+  margin-left: 5px;
 }
-.nintendo{
-    display: flex;
-    align-items: flex-end;
-    padding-top: 3px;
+.nintendo {
+  display: flex;
+  align-items: flex-end;
+  padding-top: 3px;
 }
-.nintendo-logo{
-    font-family: "Nintender";
-    letter-spacing: 0.4px;
-    font-size: 16px;
-    color: var(--letters);
-    
+.nintendo-logo {
+  font-family: "Nintender", Arial, Helvetica, sans-serif;
+  letter-spacing: 0.4px;
+  font-size: 16px;
+  color: var(--letters);
 }
-.model-sub{
-    display: inline-block;
-    font-family: Arial;
-    font-weight: bold;
-    font-size: 16px;
-    color: var(--letters);
-    transform: translateY(7px);
+.model-sub {
+  display: inline-block;
+  font-family: Arial;
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--letters);
+  transform: translateY(7px);
 }
-.screen{
-    --height: 250px;
-    --width: 330px;
-    height: var(--height);
-    width: var(--width);
-    background-color: var(--screen);
-    margin-top: 15px;
-    border-radius: 10px 10px 35px 10px;
-    box-shadow: 0 0 1px 1px #73707e83,
-        0 0 0 2px #FFF4 inset,
-        0 0 0 1px #000000 inset;  
+.screen {
+  --height: 250px;
+  --width: 330px;
+  height: var(--height);
+  width: var(--width);
+  background-color: var(--screen);
+  margin-top: 15px;
+  border-radius: 10px 10px 35px 10px;
+  box-shadow: 0 0 1px 1px #73707e83, 0 0 0 2px #fff4 inset,
+    0 0 0 1px #000000 inset;
 }
-.css-inutil{
-    position: relative;
-    height: var(--lcd-height);
-    width: var(--lcd-width);
+.css-inutil {
+  position: relative;
+  height: var(--lcd-height);
+  width: var(--lcd-width);
 }
 
-.lcd-shadow{
-    position: absolute;
-    height: var(--lcd-height);
-    width: var(--lcd-width);
-    box-shadow: 5px 5px 10px #000A inset,
-        -5px -5px 10px #0002 inset,
-        0 0 5px #FFF4;
-    z-index: 2;
+.lcd-shadow {
+  position: absolute;
+  height: var(--lcd-height);
+  width: var(--lcd-width);
+  box-shadow: 5px 5px 10px #000a inset, -5px -5px 10px #0002 inset,
+    0 0 5px #fff4;
+  z-index: 2;
 }
-canvas{
-    height: var(--lcd-height);
-    width: var(--lcd-width);
-    background-color: #9ca04c;
-    image-rendering: pixelated;
-    z-index: 1;
-    position: absolute;
-}
-
-.screen-battery-text{
-    font-family: Arial;
-    font-size: 8px;
-    color: #FFFC;
-}
-.screen-top{
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    --height: 20px;
-    height: var(--height);
-    padding: 6px 16px;
-}
-.screen-top-stripes{
-    --heigth: 5px;
-    height: var(--heigth);
-    width: 100%;
-    border-top: 2px solid #ad224e;
-    border-bottom: 2px solid #2f0a69;
+canvas {
+  height: var(--lcd-height);
+  width: var(--lcd-width);
+  background-color: #9ca04c;
+  image-rendering: pixelated;
+  z-index: 1;
+  position: absolute;
 }
 
-.screen-top span{
-    display: inline-block;
-    position: absolute;
-    font-family: Arial;
-    font-size: 9px;
-    color: #FFFC;
-    padding: 5px 9px;
-    background-color: var(--screen);
-    transform: translateX(28px);
+.screen-battery-text {
+  font-family: Arial;
+  font-size: 8px;
+  color: #fffc;
+}
+.screen-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --height: 20px;
+  height: var(--height);
+  padding: 6px 16px;
+}
+.screen-top-stripes {
+  --heigth: 5px;
+  height: var(--heigth);
+  width: 100%;
+  border-top: 2px solid #ad224e;
+  border-bottom: 2px solid #2f0a69;
 }
 
-.screen-bottom{
-    display: flex;
-    padding: 0 0 0 15px;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-}
-.screen-battery{
-    display: inline-block;
-    padding-right: 10px;
-    transform: translateY(-20px);
+.screen-top span {
+  display: inline-block;
+  position: absolute;
+  font-family: Arial;
+  font-size: 9px;
+  color: #fffc;
+  padding: 5px 9px;
+  background-color: var(--screen);
+  transform: translateX(28px);
 }
 
-.led{
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin: 6px;
-    box-shadow:
-        0 0 6px #000 inset;
+.screen-bottom {
+  display: flex;
+  padding: 0 0 0 15px;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+.screen-battery {
+  display: inline-block;
+  padding-right: 10px;
+  transform: translateY(-20px);
 }
 
-.led.on{
-    box-shadow: 0px 0px 8px 3px rgba(255, 108, 82, 0.772);
-    background: radial-gradient(circle, rgb(255, 181, 168), rgb(255, 0, 0));
+.led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 6px;
+  box-shadow: 0 0 6px #000 inset;
+}
+
+.led.on {
+  box-shadow: 0px 0px 8px 3px rgba(255, 108, 82, 0.772);
+  background: radial-gradient(circle, rgb(255, 181, 168), rgb(255, 0, 0));
 }
