@@ -29,6 +29,8 @@
 
 body {
   margin: 0;
+  padding: 1rem;
+  margin-top: 3rem;
   font-family: "Arial", sans-serif, "Pretendo";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

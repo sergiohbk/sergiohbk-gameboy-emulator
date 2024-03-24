@@ -7,8 +7,14 @@ import { Game } from "./UI/Game";
 import { store } from "./UI/Global";
 import { Modal } from "./UI/Modal";
 import { VRAMdisplay } from "./GAMEBOY/extras/VRAMdisplay";
+import { DeveloperMode } from "./UI/DeveloperMode";
+import { connect } from "react-redux";
 
-export class App extends React.Component {
+const mapStateToProps = (state) => ({
+  devmode: state.devmode,
+});
+
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = { game: false, running: false, debug: false };
@@ -49,20 +55,16 @@ export class App extends React.Component {
     });
 
     return (
-      <div className="App">
+      <main>
         <Modal />
-        <div className="container">
-          <GameboyConsole />
-        </div>
-        <div className="loads">
-          <Game />
-        </div>
-        <div>
-          {this.state.debug && (
-            <canvas id="vram" width={200} height={200}></canvas>
-          )}
-        </div>
-      </div>
+        {!this.props.devmode && (
+          <div className="container">
+            <GameboyConsole />
+          </div>
+        )}
+        <Game />
+        {this.props.devmode && <DeveloperMode></DeveloperMode>}
+      </main>
     );
   }
 
@@ -78,3 +80,5 @@ export class App extends React.Component {
       );
   }
 }
+
+export default connect(mapStateToProps)(App);
