@@ -2,28 +2,34 @@ import "./Gameboy-turn-on.css";
 import React from "react";
 import { store, turnOnGameboy, turnOffGameboy } from "./Global";
 
-export class GameboyTurnOn extends React.Component{
-    constructor(props){
-        super(props);
-        this.turn = false;
-    }
+export class GameboyTurnOn extends React.Component {
+  constructor(props) {
+    super(props);
+    this.turn = false;
+  }
 
-    handleClick = () => {
-        this.turn = !this.turn;
-        //this.props.gameboyOn(this.turn);
-        if(this.turn){
-            document.getElementById("power-button").classList.add("on");
-            store.dispatch(turnOnGameboy());
-        }else{
-            document.getElementById("power-button").classList.remove("on");
-            store.dispatch(turnOffGameboy());
-        }
+  handleClick = () => {
+    this.turn = !this.turn;
+    const powerbutton = document.getElementById("power-button");
+    if (this.turn) {
+      powerbutton.classList.add("on");
+      powerbutton.title = "Apagar Gameboy";
+      store.dispatch(turnOnGameboy());
+    } else {
+      powerbutton.classList.remove("on");
+      powerbutton.title = "Encender Gameboy";
+      store.dispatch(turnOffGameboy());
     }
+  };
 
-    render(){
-        return(
-            <div id="power-button" className="power-button" onClick={this.handleClick}>
-            </div>
-        );
-    }
+  render() {
+    return (
+      <div
+        id="power-button"
+        className="power-button"
+        title="Encender Gameboy"
+        onClick={this.handleClick}
+      ></div>
+    );
+  }
 }

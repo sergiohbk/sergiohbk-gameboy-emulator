@@ -46,6 +46,11 @@
   box-shadow: 0 0 1px 1px #73707e83, 0 0 0 2px #fff4 inset,
     0 0 0 1px #000000 inset;
 }
+.screen-centering {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .css-inutil {
   position: relative;
   height: var(--lcd-height);
@@ -60,6 +65,11 @@
     0 0 5px #fff4;
   z-index: 2;
 }
+
+.lcd-drop-shadow {
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.15);
+}
+
 canvas {
   height: var(--lcd-height);
   width: var(--lcd-width);

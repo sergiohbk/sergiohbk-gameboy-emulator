@@ -7,7 +7,7 @@ import { Game } from "./UI/Game";
 import { store } from "./UI/Global";
 import { Modal } from "./UI/Modal";
 import { VRAMdisplay } from "./GAMEBOY/extras/VRAMdisplay";
-import { DeveloperMode } from "./UI/DeveloperMode";
+import DeveloperMode from "./UI/DeveloperMode";
 import { connect } from "react-redux";
 
 const mapStateToProps = (state) => ({
@@ -57,13 +57,12 @@ class App extends React.Component {
     return (
       <main>
         <Modal />
-        {!this.props.devmode && (
-          <div className="container">
-            <GameboyConsole />
-          </div>
+        {!this.props.devmode ? (
+          <GameboyConsole />
+        ) : (
+          <DeveloperMode></DeveloperMode>
         )}
         <Game />
-        {this.props.devmode && <DeveloperMode></DeveloperMode>}
       </main>
     );
   }

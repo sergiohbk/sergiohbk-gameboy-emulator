@@ -1,25 +1,29 @@
-.power-button{
-    width: 15px;
-    height: 10px;
-    background: var(--gameboy-color);
-    position: absolute;
-    transform: translate(35px, -3px);
-    border-top: 1px solid #FFFE;
-    z-index: -1;
-    cursor: pointer;
-    transition: transform 0.5s ease;
+.power-button {
+  width: 15px;
+  height: 10px;
+  background: var(--gameboy-color);
+  position: absolute;
+  transform: translate(35px, -3px);
+  border-top: 1px solid #fffe;
+  z-index: -1;
+  cursor: pointer;
+  transition: transform 0.5s ease;
 }
-.power-button::after{
-    content: "";
-    width: 13px;
-    height: 20px;
-    background: var(--gameboy-color);
-    position: absolute;
-    border-radius: 50px;
-    transform: translate(1px, -3px);
+.power-button::after {
+  content: "";
+  width: 13px;
+  height: 20px;
+  background: var(--gameboy-color);
+  position: absolute;
+  border-radius: 50px;
+  transform: translate(1px, -3px);
 }
 
-.power-button.on{
-    transition: transform 0.5s ease;
-    transform: translate(55px, -3px);
+.power-button:hover {
+  filter: brightness(140%);
+}
+
+.power-button.on {
+  transition: transform 0.5s ease;
+  transform: translate(55px, -3px);
 }
